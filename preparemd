@@ -1,9 +1,0 @@
-#!/bin/sh
-count=0;
-sed -n "/^@l$/=" l.md | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "\t" }}' | while read LINE;
-do start=$(echo $LINE | cut -d' ' -f1);
-end=$(echo $LINE | cut -d' ' -f2);
-sed -n "${start},${end}p" l.md;
-sed "${start},${end}s/.*/.latex${count}/g" l.md;
-count=$((count + 1));
-done
