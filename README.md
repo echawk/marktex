@@ -52,7 +52,8 @@ To get rid of all of the generated files, run `make clean`
 ## TODO
 - [ ] Add in support for the preamble
 - [ ] Extract the commands to an external shell script (while still keeping it embedded in the makefile)
-- [ ] Support proper inline math with the '@m' tags
+- [x] Support proper inline math with the '@m' tags
+	- We don't have to support this ourselves; lowdown already offers a '--parse-math' flag to hande this.
 
 ## Issues
 - Currently there is no way to tell lowdown about context
