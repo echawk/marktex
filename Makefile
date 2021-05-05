@@ -14,25 +14,39 @@ COMBINEDPDF=$(COMBINEDTEXSRC:.tex=.pdf)
 
 all: $(COMBINEDPDF)
 
+%-detex.md: %.md
+	@count=0; file=$<; cp $< copy-$<; sed -n "/^@l$$/=" $< | awk '{if (NR % 2 == 0) {print $$1} else {printf $$1 "\t" }}' | while read LINE; do \
+		start=$$(echo $$LINE | cut -d' ' -f1); \
+		end=$$(echo $$LINE | cut -d' ' -f2); \
+		sed -n "$${start},$${end}p" $< > $${count}-$<.tex; \
+		sed -i "/@l/d" $${count}-$<.tex; \
+		sed "$${start},$${end}s/.*/@input{$${count}-$<.tex}/g" copy-$< > copy-$${count}-$<; \
+		mv copy-$${count}-$< copy-$< ; \
+		count=$$((count + 1)); \
+	done
+	@count=0; file=$<; sed -n "/@m/=" $< | while read LINE; do \
+		sed -n "$${LINE}p" $< > $${count}-math-$<.tex; \
+		sed -i "s/@m/$$/g" $${count}-math-$<.tex; \
+		sed "$${LINE}s/.*/@input{$${count}-math-$<.tex}/" copy-$< > copy-$${count}-$<; \
+		mv copy-$${count}-$< copy-$< ; \
+		count=$$((count + 1)); \
+	done
+	@uniq copy-$< > $@
+	@rm copy-$<
+
 %-standalone.md: %.md
 	@cp $< $@
 
 # When compiling standalone pdfs, add the '-s' flag to MDCFLAGS
 %-standalone.tex: MDCFLAGS+=-s
 
-%.tex: %.md
+%.tex: %-detex.md
 	# replace any underscores(_) with \_; makes integrals and sums work
 	#@sed -i -E 's=\\?\_=\\\_=g' $<
 	$(MDC) $(MDCFLAGS) $< -o $@
-	@sed -i -e "s=@m=$$=g" \
+	@sed -i -e "s=@in=\\\\in=" \
 	-e 's=\\{={=g' \
-	-e 's=\\}=}=g' \
-	-e 's=\\_=_=g' \
-	-e 's=textbackslash{}==g' \
-	-e 's=\\textasciicircum{}=^=g' \
-	-e 's=\\textsuperscript=^=g' \
-	-e 's=sum\\emph{=sum_=g' \
-	-e 's~\\\&=~\&=~g' $@
+	-e 's=\\}=}=g' $@
 	#@grep '\documentclass{' && { for pkg in $(TEXPKGS); do; pkgline="$$pkgline \n\usepackage{$$pkg}" done; sed -E "s~(\documentclass{.*})~\1$$pkgline~"};
 
 %.pdf: %.tex
@@ -55,4 +69,4 @@ standalone: $(SALPDFS) $(SALTEXSRCS) $(SALMDSRCS)
 clean:
 	@latexmk -c -f $(COMBINEDTEXSRC)
 	@latexmk -c -f $(SALTEXSRCS)
-	@rm -vf $(TEXSRCS) $(COMBINEDTEXSRC) $(COMBINEDPDF) $(SALPDFS) $(SALTEXSRCS) $(SALMDSRCS)
+	@rm -vf $(TEXSRCS) $(COMBINEDTEXSRC) $(COMBINEDPDF) $(SALPDFS) $(SALTEXSRCS) $(SALMDSRCS) *.tex
