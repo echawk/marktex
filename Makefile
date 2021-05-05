@@ -26,8 +26,8 @@ all: $(COMBINEDPDF)
 	done
 	@count=0; file=$<; sed -n "/@m/=" $< | while read LINE; do \
 		sed -n "$${LINE}p" $< > $${count}-math-$<.tex; \
-		sed -i "s/@m/$$/g" $${count}-math-$<.tex; \
-		sed "$${LINE}s/.*/@input{$${count}-math-$<.tex}/" copy-$< > copy-$${count}-$<; \
+		sed -i -e "s=^[^@]*@m=@m=" -e "s/@m/$$/g" $${count}-math-$<.tex; \
+		sed "$${LINE}s/@m.*@m/@input{$${count}-math-$<.tex}/" copy-$< > copy-$${count}-$<; \
 		mv copy-$${count}-$< copy-$< ; \
 		count=$$((count + 1)); \
 	done
