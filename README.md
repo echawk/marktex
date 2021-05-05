@@ -25,9 +25,9 @@ tags instead:
 
 Most things will typically *just work*.
 Currently the only exception to this is if you need external packages,
-as I have not yet implemented support for chaning the preamble of the document.
+as I have not yet implemented support for changing the preamble of the document.
 
-And all you need to do is copy the Makefile in this diretory
+And all you need to do is copy the Makefile in this directory
 into your note directory, and you're good to go.
 
 I do plan on adding a generic shell script in the future.
