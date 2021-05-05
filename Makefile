@@ -1,7 +1,7 @@
 .PHONY: clean separate
 
 MDC=lowdown
-MDCFLAGS=-Tlatex
+MDCFLAGS=-Tlatex --parse-math
 TEXCC=pdflatex
 MDSRCS=$(wildcard *.md)
 TEXSRCS=$(MDSRCS:.md=.tex)

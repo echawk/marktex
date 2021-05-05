@@ -16,12 +16,13 @@ $ and math works \, a^2 + b^2 = c^2 $
 @l
 ```
 
-To use just the math mode of LaTeX, you can wrap your code in '@m'
-tags instead:
+~~To use just the math mode of LaTeX, you can wrap your code in '@m' tags instead:~~
 
 ```
 @m \int_a^b f(t) @m
 ```
+Update: I've come to find out about lowdown's `--parse-math` flag, so that is used instead now.
+
 
 Most things will typically *just work*.
 Currently the only exception to this is if you need external packages,
