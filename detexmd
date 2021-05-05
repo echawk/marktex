@@ -6,8 +6,8 @@
 # count and file are the varaibles that we need to keep track of.
 # this is what is responsible for handling the @l tokens, and latex
 # code in between them
-count=0; file=l.md; cp ${file} copy-${file}; \
-sed -n "/^@l$/=" ${file} | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "\t" }}' | while read LINE; \
+
+count=0; file=l.md; cp ${file} copy-${file}; sed -n "/^@l$/=" ${file} | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "\t" }}' | while read LINE; \
 do \
 	start=$(echo $LINE | cut -d' ' -f1); \
 	end=$(echo $LINE | cut -d' ' -f2); \
@@ -18,8 +18,7 @@ do \
 	count=$((count + 1)); \
 done
 # Now we are on to the @m tokens
-count=0
-sed -n "/@m/=" ${file} | while read LINE; \
+count=0; file=l.md; sed -n "/@m/=" ${file} | while read LINE; \
 do \
 	sed -n "${LINE}p" ${file} > ${count}-math-${file}.tex; \
 	sed -i "s/@m/$/g" ${count}-math-${file}.tex; \
