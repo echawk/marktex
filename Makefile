@@ -1,4 +1,4 @@
-.PHONY: clean standalone
+.PHONY: clean separate
 
 MDC=lowdown
 MDCFLAGS=-Tlatex
@@ -64,7 +64,7 @@ $(COMBINEDTEXSRC): $(TEXSRCS)
 	done
 	@echo "\end{document}\n" >> $(COMBINEDTEXSRC);
 
-standalone: $(SALPDFS) $(SALTEXSRCS) $(SALMDSRCS)
+separate: $(SALPDFS) $(SALTEXSRCS) $(SALMDSRCS)
 
 clean:
 	@latexmk -c -f $(COMBINEDTEXSRC)
