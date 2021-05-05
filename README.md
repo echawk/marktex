@@ -1,24 +1,36 @@
-# marktex - a Makefile that allows latex in markdown!
+# marktex - a wrapper that allows latex in markdown!
 
 marktex is essentially a wrapper on top of `lowdown` that
-allows embedding latex commands (namely math mode) into a
+allows embedding arbitrary LaTeX commands  into a
 markdown document.
 
-There are a few catches though, first you will have to make
-sure that you write your LaTeX commands in such a way that
-lowdown won't screw them up.
+To use LaTeX code, wrap your code in '@l' tags.
+Like so:
 
-Some examples:
-* changing '\_' to '\\\_' in your `\\int` and `\\sum` lines
-* changing '\*' to '\\\*' for your equation contexts
-* etc...
+```
+@l
+\begin{center}
+Here is my \LaTeX code
+$ and math works \, a^2 + b^2 = c^2 $
+\end{center}
+@l
+```
 
+To use just the math mode of LaTeX, you can wrap your code in '@m'
+tags instead:
 
-But most things will typically *just work*.
+```
+@m \int_a^b f(t) @m
+```
 
+Most things will typically *just work*.
+Currently the only exception to this is if you need external packages,
+as I have not yet implemented support for chaning the preamble of the document.
 
 And all you need to do is copy the Makefile in this diretory
 into your note directory, and you're good to go.
+
+I do plan on adding a generic shell script in the future.
 
 ## Usage
 To make a cumulative pdf, just run `make`
@@ -33,8 +45,14 @@ To get rid of all of the generated files, run `make clean`
 * pdflatex
 * gnu make
 * sed with the '-i' flag
+* awk
 * latexmk (used for the clean rule)
 
+
+## TODO
+- [ ] Add in support for the preamble
+- [ ] Extract the commands to an external shell script (while still keeping it embedded in the makefile)
+- [ ] Support proper inline math with the '@m' tags
 
 ## Issues
 - Currently there is no way to tell lowdown about context
