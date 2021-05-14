@@ -13,7 +13,7 @@ do \
 	end=$(echo $LINE | cut -d' ' -f2); \
 	sed -n "${start},${end}p" ${file} > ${count}-${file}.tex; \
 	sed -i "/@l/d" ${count}-${file}.tex; \
-	sed "${start},${end}s/.*/@input{${count}-${file}.tex}/g" copy-${file} > copy-${count}-${file}; \
+	sed "${start},${end}s/.*/@input@${count}-${file}.tex@/g" copy-${file} > copy-${count}-${file}; \
 	mv copy-${count}-${file} copy-${file} ; \
 	count=$((count + 1)); \
 done
@@ -31,8 +31,6 @@ rm copy-${file}
 
 lowdown -s -Tlatex --parse-math detex-${file} -o ${file}.tex
 
-sed -i -e "s=@in=\\\\in=" \
-	-e 's=\\{={=g' \
-	-e 's=\\}=}=g' ${file}.tex
+sed -i -E "s=@input@([^@]*)@=\\\\input{\1}=" ${file}.tex
 
-pdflatex ${file}.tex
+#pdflatex ${file}.tex
