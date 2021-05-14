@@ -41,7 +41,7 @@ rm copy-${file}
 
 lowdown -s -Tlatex --parse-math detex-${file} -o ${file}.tex
 
-if grep "@pre@" ${file}.tex
+if grep -q "@pre@" ${file}.tex
 then
 	PREAMINC=$(grep "@pre@" ${file}.tex | sed -E "s=@pre@(.*)@=input{\1}=")
 	sed -i -E  "s=^(\\\\documentclass\[[a-zA-Z0-9,]*\]\{[a-zA-Z]*})$=\1\n\n\\\\$PREAMINC=" ${file}.tex
