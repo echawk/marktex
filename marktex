@@ -6,6 +6,9 @@
 # count and file are the varaibles that we need to keep track of.
 # this is what is responsible for handling the @l tokens, and latex
 # code in between them
+
+TEXCC=${TEXCC:-pdflatex}
+
 file=l.md;
 count=0; cp ${file} copy-${file}; sed -n "/^@l$/=" ${file} | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "\t" }}' | while read LINE; \
 do \
@@ -20,13 +23,13 @@ done
 
 if grep -E -q "^@p$" ${file}; \
 then \
-	PREAM=$(sed -n "/^@p$/=" ${file} | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "\t" }}');
-	start=$(echo $PREAM | cut -d' ' -f1);
-	end=$(echo $PREAM | cut -d' ' -f2);
-	sed -n "${start},${end}p" ${file} > preamble-${file}.tex;
-	sed -i "/@p/d" preamble-${file}.tex;
-	sed -i "${start},${end}s/.*/@pre@preamble-${file}.tex@/g" copy-${file};
-fi
+	PREAM=$(sed -n "/^@p$/=" ${file} | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "\t" }}'); \
+	start=$(echo $PREAM | cut -d' ' -f1); \
+	end=$(echo $PREAM | cut -d' ' -f2); \
+	sed -n "${start},${end}p" ${file} > preamble-${file}.tex; \
+	sed -i "/@p/d" preamble-${file}.tex; \
+	sed -i "${start},${end}s/.*/@pre@preamble-${file}.tex@/g" copy-${file}; \
+fi;
 # Now we are on to the @m tokens
 #count=0; sed -n "/@m/=" ${file} | while read LINE; \
 #do \
@@ -36,18 +39,18 @@ fi
 #	mv copy-${count}-${file} copy-${file} ; \
 #	count=$((count + 1)); \
 #done
-uniq copy-${file} > detex-${file}
-rm copy-${file}
+uniq copy-${file} > detex-${file};
+rm copy-${file};
 
-lowdown -s -Tlatex --parse-math detex-${file} -o ${file}.tex
+lowdown -s -Tlatex --parse-math detex-${file} -o ${file}.tex;
 
-if grep -q "@pre@" ${file}.tex
-then
-	PREAMINC=$(grep "@pre@" ${file}.tex | sed -E "s=@pre@(.*)@=input{\1}=")
-	sed -i -E  "s=^(\\\\documentclass\[[a-zA-Z0-9,]*\]\{[a-zA-Z]*})$=\1\n\n\\\\$PREAMINC=" ${file}.tex
-	sed -i -E "s=^@pre@.*$==" ${file}.tex
-fi
-sed -i -E "s=@input@([^@]*)@=\\\\input{\1}=" ${file}.tex
+if grep -q "@pre@" ${file}.tex; \
+then \
+	PREAMINC=$(grep "@pre@" ${file}.tex | sed -E "s=@pre@(.*)@=input{\1}="); \
+	sed -i -E  "s=^(\\\\documentclass\[[a-zA-Z0-9,]*\]\{[a-zA-Z]*})$=\1\n\n\\\\$PREAMINC=" ${file}.tex; \
+	sed -i -E "s=^@pre@.*$==" ${file}.tex; \
+fi;
+sed -i -E "s=@input@([^@]*)@=\\\\input{\1}=" ${file}.tex;
 
 
-#pdflatex ${file}.tex
+${TEXCC} ${file}.tex
