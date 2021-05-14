@@ -18,13 +18,15 @@ do \
 	count=$((count + 1)); \
 done
 
-PREAM=$(sed -n "/^@p$/=" ${file} | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "\t" }}')
-start=$(echo $PREAM | cut -d' ' -f1);
-end=$(echo $PREAM | cut -d' ' -f2);
-sed -n "${start},${end}p" ${file} > preamble-${file}.tex;
-sed -i "/@p/d" preamble-${file}.tex;
-sed -i "${start},${end}s/.*/@pre@preamble-${file}.tex@/g" copy-${file}
-
+if grep -E -q "^@p$" ${file}; \
+then \
+	PREAM=$(sed -n "/^@p$/=" ${file} | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "\t" }}');
+	start=$(echo $PREAM | cut -d' ' -f1);
+	end=$(echo $PREAM | cut -d' ' -f2);
+	sed -n "${start},${end}p" ${file} > preamble-${file}.tex;
+	sed -i "/@p/d" preamble-${file}.tex;
+	sed -i "${start},${end}s/.*/@pre@preamble-${file}.tex@/g" copy-${file};
+fi
 # Now we are on to the @m tokens
 #count=0; sed -n "/@m/=" ${file} | while read LINE; \
 #do \
@@ -39,13 +41,13 @@ rm copy-${file}
 
 lowdown -s -Tlatex --parse-math detex-${file} -o ${file}.tex
 
-sed -i -E -e "s=@input@([^@]*)@=\\\\input{\1}=" ${file}.tex
-
-if grep -q -E "^@pre@preamble-" ${file}.tex
+if grep "@pre@" ${file}.tex
 then
-	preambleline=$(grep -E "^@pre@preamble-" ${file}.tex)
-	sed -i -E -e "s=$preambleline==g" \
-		-e -E "s=(\\\\begin{document})=$preambleline\n\1=" ${file}.tex
+	PREAMINC=$(grep "@pre@" ${file}.tex | sed -E "s=@pre@(.*)@=input{\1}=")
+	sed -i -E  "s=^(\\\\documentclass\[[a-zA-Z0-9,]*\]\{[a-zA-Z]*})$=\1\n\n\\\\$PREAMINC=" ${file}.tex
+	sed -i -E "s=^@pre@.*$==" ${file}.tex
 fi
+sed -i -E "s=@input@([^@]*)@=\\\\input{\1}=" ${file}.tex
 
-pdflatex ${file}.tex
+
+#pdflatex ${file}.tex
