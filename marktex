@@ -12,8 +12,8 @@ TEXCC=${TEXCC:-pdflatex}
 file=l.md;
 count=0; cp ${file} copy-${file}; sed -n "/^@l$/=" ${file} | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "\t" }}' | while read LINE; \
 do \
-	start=$(echo $LINE | cut -d' ' -f1); \
-	end=$(echo $LINE | cut -d' ' -f2); \
+	start=$(echo "$LINE" | cut -d' ' -f1); \
+	end=$(echo "$LINE" | cut -d' ' -f2); \
 	sed -n "${start},${end}p" ${file} > ${count}-${file}.tex; \
 	sed -i "/@l/d" ${count}-${file}.tex; \
 	sed "${start},${end}s/.*/@input@${count}-${file}.tex@/g" copy-${file} > copy-${count}-${file}; \
@@ -24,8 +24,8 @@ done
 if grep -E -q "^@p$" ${file}; \
 then \
 	PREAM=$(sed -n "/^@p$/=" ${file} | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "\t" }}'); \
-	start=$(echo $PREAM | cut -d' ' -f1); \
-	end=$(echo $PREAM | cut -d' ' -f2); \
+	start=$(echo "$PREAM" | cut -d' ' -f1); \
+	end=$(echo "$PREAM" | cut -d' ' -f2); \
 	sed -n "${start},${end}p" ${file} > preamble-${file}.tex; \
 	sed -i "/@p/d" preamble-${file}.tex; \
 	sed -i "${start},${end}s/.*/@pre@preamble-${file}.tex@/g" copy-${file}; \
