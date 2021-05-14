@@ -8,8 +8,8 @@
 # code in between them
 
 TEXCC=${TEXCC:-pdflatex}
+file=$1;
 
-file=l.md;
 count=0; cp ${file} copy-${file}; sed -n "/^@l$/=" ${file} | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "\t" }}' | while read LINE; \
 do \
 	start=$(echo "$LINE" | cut -d' ' -f1); \
@@ -43,6 +43,7 @@ uniq copy-${file} > detex-${file};
 rm copy-${file};
 
 lowdown -s -Tlatex --parse-math detex-${file} -o ${file}.tex;
+rm detex-${file};
 
 if grep -q "@pre@" ${file}.tex; \
 then \
