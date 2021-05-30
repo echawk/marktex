@@ -31,6 +31,15 @@ all: $(COMBINEDPDF)
 		mv copy-$${count}-$< copy-$< ; \
 		count=$$((count + 1)); \
 	done
+	@if grep -E -q "^@p$$" $<; \
+	then \
+		PREAM=$$(sed -n "/^@p$$/=" $< | awk '{if (NR % 2 == 0) {print $$1} else {printf $$1 "\t" }}'); \
+		start=$$(echo $$PREAM | cut -d' ' -f1); \
+		end=$$(echo $$PREAM | cut -d' ' -f2); \
+		sed -n "$${start},$${end}p" $< > preamble-$<.tex; \
+		sed -i "/@p/d" preamble-$<.tex; \
+		sed -i "$${start},$${end}s/.*/@pre@preamble-$<.tex@/g" copy-$<; \
+	fi;
 	@uniq copy-$< > $@
 	@rm copy-$<
 
