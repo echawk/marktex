@@ -47,11 +47,16 @@ To get rid of all of the generated files, run `make clean`
 * gnu make
 * sed with the '-i' flag
 * awk
+* uniq
+* grep
 * latexmk (used for the clean rule)
 
 
 ## TODO
-- [ ] Add in support for the preamble
+- [x] Add in support for the preamble
+	- The preamble is tested well in the 'marktex' script, however it has not been throughly tested with the makefile
+- [ ] Add in support to change the document class (ideally in the preamble section)
+- [ ] Add in support for citation commands
 - [ ] Extract the commands to an external shell script (while still keeping it embedded in the makefile)
 - [x] Support proper inline math with the '@m' tags
 	- We don't have to support this ourselves; lowdown already offers a '--parse-math' flag to hande this.
