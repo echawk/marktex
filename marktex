@@ -9,7 +9,7 @@
 
 TEXCC=${TEXCC:-pdflatex}
 file=$1
-
+GENFILES="$(mktemp)"
 # Handle the LaTeX blocks
 count=0
 cp ${file} copy-${file}
@@ -21,10 +21,12 @@ do
 	sed -i "/@l/d" ${count}-${file}.tex
 	sed "${start},${end}s/.*/@input@${count}-${file}.tex@/g" copy-${file} > copy-${count}-${file}
 	mv copy-${count}-${file} copy-${file}
+	echo "${count}-${file}.tex" >> $GENFILES
 	count=$((count + 1))
 done
 
-CODEBLOCK=N; # Global variable to determine whether or not we have a code block in the file
+count=0
+CODEBLOCK=N # Global variable to determine whether or not we have a code block in the file
 a='```'
 ptrn="${a}@C@?[a-z]*@?[a-z]*"
 sed -E -n "/^${ptrn}/=" ${file} | awk '{if (NR % 2 == 0) { print $1} else {printf $1 "\t" }}' | while read LINE;
@@ -41,15 +43,18 @@ do \
 	CODEBLOCK=Y
 	sed "${start},${end}s/.*/@input@${count}-code-${file}.tex@/g" copy-${file} > copy-${count}-${file}
 	mv copy-${count}-${file} copy-${file}
+	echo "${count}-code-${file}.tex" >> $GENFILES
 	count=$((count + 1))
 done
 
-count=0; sed -n "/@c/=" ${file} | while read LINE
+count=0
+sed -n "/@c/=" ${file} | while read LINE
 do
 	sed -n "${LINE}p" ${file} > ${count}-cite-${file}.tex
 	sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\\\\autocite{\1}/g" ${count}-cite-${file}.tex
 	sed "${LINE}s/@c.*@c/@input@${count}-cite-${file}.tex@/" copy-${file} > copy-${count}-${file}
 	mv copy-${count}-${file} copy-${file}
+	echo "${count}-cite-${file}.tex" >> $GENFILES
 	count=$((count + 1))
 done
 
@@ -62,6 +67,7 @@ then
 	sed -n "${start},${end}p" ${file} > preamble-${file}.tex
 	sed -i "/@p/d" preamble-${file}.tex
 	sed -i "${start},${end}s/.*/@pre@preamble-${file}.tex@/g" copy-${file}
+	echo "preamble-${file}.tex" >> $GENFILES
 fi
 # Now we are on to the @m tokens
 #count=0; sed -n "/@m/=" ${file} | while read LINE
@@ -88,3 +94,9 @@ sed -i -E "s=@input@([^@]*)@=\\\\input{\1}=" ${file}.tex;
 
 
 ${TEXCC} ${file}.tex
+
+for f in $(cat $GENFILES)
+do
+	rm -v $f
+done
+rm $GENFILES
