@@ -50,7 +50,7 @@ To get rid of all of the generated files, run `make clean`
 * uniq
 * grep
 * latexmk (used for the clean rule)
-
+* source-highlight
 
 ## TODO
 - [ ] Refactor `marktex` to be easier to follow; don't use as many compound variable names...
