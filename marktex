@@ -26,7 +26,7 @@ do
 done
 
 count=0
-CODEBLOCK=N # Global variable to determine whether or not we have a code block in the file
+CODEBLOCK=N # Global variable to determine whether or not we have a code block in the file; if Y, then \usepackage[dvipsnames]{xcolor}
 a='```'
 ptrn="${a}@C@?[a-z]*@?[a-z]*"
 
