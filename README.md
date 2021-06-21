@@ -57,7 +57,10 @@ To get rid of all of the generated files, run `make clean`
 	- The preamble is tested well in the 'marktex' script, however it has not been throughly tested with the makefile
 - [ ] Add in support to change the document class (ideally in the preamble section)
 - [ ] Add in support for citation commands
-- [ ] Extract the commands to an external shell script (while still keeping it embedded in the makefile)
+- [ ] Add in support for highlighting source code
+	- I'd like to be able to use marktex for literate programming
+- [x] Extract the commands to an external shell script (while still keeping it embedded in the makefile)
+	- This is currently what the `marktex` shell script does; it's where the main development is occuring
 - [x] Support proper inline math with the '@m' tags
 	- We don't have to support this ourselves; lowdown already offers a '--parse-math' flag to hande this.
 
