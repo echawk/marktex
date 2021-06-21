@@ -64,9 +64,10 @@ TODO: Figure this out
 ### Current Idea
 
 Wrap code blocks like so:
+
 	```{py}{optionalfile}
 	def fun(n):
-	return n * n
+		return n * n
 	```
 
 
