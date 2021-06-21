@@ -67,8 +67,8 @@ To get rid of all of the generated files, run `make clean`
 	- We don't have to support this ourselves; lowdown already offers a '--parse-math' flag to hande this.
 
 ### Long Term
-	- Reduce the dependence on LaTeX; add in the ability to use groff instead
-		- This should be relatively straightforward, however I don't want to start this process until marktex is sufficently stable
+- Reduce the dependence on LaTeX; add in the ability to use groff instead
+	- This should be relatively straightforward, however I don't want to start this process until marktex is sufficently stable
 
 ## Issues
 - Currently there is no way to tell lowdown about context
