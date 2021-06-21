@@ -70,4 +70,13 @@ Wrap code blocks like so:
 		return n * n
 	```
 
+### Other Ideas
+
+Wrap code blocks like so:
+
+	@C@py@optionalfile
+	def fun(n):
+		return n * n
+	@C
+
 
