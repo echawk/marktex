@@ -13,11 +13,11 @@ GENFILES="$(mktemp)"
 # Handle the LaTeX blocks
 count=0
 cp "${file}" "copy-${file}"
-sed -n "/^@l$/=" ${file} | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "\t" }}' | while read LINE
+sed -n "/^@l$/=" "${file}" | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "\t" }}' | while read -r LINE
 do
 	start=$(echo $LINE | cut -d' ' -f1)
 	end=$(echo $LINE | cut -d' ' -f2)
-	sed -n "${start},${end}p" ${file} > "${count}-${file}.tex"
+	sed -n "${start},${end}p" "${file}" > "${count}-${file}.tex"
 	sed -i "/@l/d" "${count}-${file}.tex"
 	sed "${start},${end}s/.*/@input@${count}-${file}.tex@/g" "copy-${file}" > "copy-${count}-${file}"
 	mv "copy-${count}-${file}" "copy-${file}"
@@ -39,12 +39,12 @@ CODESRCFILES="$(grep -E "${ptrn}" "${file}" | cut -d"@" -f4 | sort -u)"
 	done
 }
 
-sed -E -n "/^${ptrn}/=" ${file} | awk '{if (NR % 2 == 0) { print $1} else {printf $1 "\t" }}' | while read LINE;
+sed -E -n "/^${ptrn}/=" "${file}" | awk '{if (NR % 2 == 0) { print $1} else {printf $1 "\t" }}' | while read -r LINE;
 do \
 	start=$(echo $LINE | cut -d' ' -f1)
 	end=$(echo $LINE | cut -d' ' -f2)
 	lang=$(sed -n "${start}p" "${file}" | cut -d'@' -f3)
-	! [ -z $(sed -n "${start}p" "${file}" | cut -d'@' -f4) ] && langfile="$(sed -n "${start}p" "${file}" | cut -d'@' -f4)" || langfile=""
+	[ -n "$(sed -n "${start}p" "${file}" | cut -d'@' -f4)" ] && langfile="$(sed -n "${start}p" "${file}" | cut -d'@' -f4)" || langfile=""
 	sed -n "${start},${end}p" "${file}" > "${count}-code-${file}.tmp.${lang}"
 	sed -E -i "/$ptrn/d" "${count}-code-${file}.tmp.${lang}"
 	[ -n "$langfile" ] && cat "${count}-code-${file}.tmp.${lang}" >> "$langfile"
@@ -58,9 +58,9 @@ do \
 done
 
 count=0
-sed -n "/@c/=" ${file} | while read LINE
+sed -n "/@c/=" "${file}" | while read -r LINE
 do
-	sed -n "${LINE}p" ${file} > "${count}-cite-${file}.tex"
+	sed -n "${LINE}p" "${file}" > "${count}-cite-${file}.tex"
 	sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\\\\autocite{\1}/g" "${count}-cite-${file}.tex"
 	sed "${LINE}s/@c.*@c/@input@${count}-cite-${file}.tex@/" "copy-${file}" > "copy-${count}-${file}"
 	mv "copy-${count}-${file}" "copy-${file}"
@@ -74,7 +74,7 @@ then
 	PREAM=$(sed -n "/^@p$/=" "${file}" | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "\t" }}')
 	start=$(echo $PREAM | cut -d' ' -f1)
 	end=$(echo $PREAM | cut -d' ' -f2)
-	sed -n "${start},${end}p" ${file} > "preamble-${file}.tex"
+	sed -n "${start},${end}p" "${file}" > "preamble-${file}.tex"
 	sed -i "/@p/d" "preamble-${file}.tex"
 	sed -i "${start},${end}s/.*/@pre@preamble-${file}.tex@/g" "copy-${file}"
 	echo "preamble-${file}.tex" >> "$GENFILES"
@@ -91,7 +91,7 @@ fi
 uniq "copy-${file}" > "detex-${file}"
 rm "copy-${file}"
 
-lowdown -s -Tlatex --parse-math detex-${file} -o "${file}.tex";
+lowdown -s -Tlatex --parse-math "detex-${file}" -o "${file}.tex";
 rm "detex-${file}"
 
 if grep -q "@pre@" "${file}.tex"
