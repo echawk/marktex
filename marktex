@@ -8,18 +8,20 @@
 # code in between them
 
 TEXCC=${TEXCC:-pdflatex}
-file=$1;
+file=$1
 
 # Handle the LaTeX blocks
-count=0; cp ${file} copy-${file}; sed -n "/^@l$/=" ${file} | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "\t" }}' | while read LINE; \
-do \
-	start=$(echo $LINE | cut -d' ' -f1); \
-	end=$(echo $LINE | cut -d' ' -f2); \
-	sed -n "${start},${end}p" ${file} > ${count}-${file}.tex; \
-	sed -i "/@l/d" ${count}-${file}.tex; \
-	sed "${start},${end}s/.*/@input@${count}-${file}.tex@/g" copy-${file} > copy-${count}-${file}; \
-	mv copy-${count}-${file} copy-${file} ; \
-	count=$((count + 1)); \
+count=0
+cp ${file} copy-${file}
+sed -n "/^@l$/=" ${file} | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "\t" }}' | while read LINE
+do
+	start=$(echo $LINE | cut -d' ' -f1)
+	end=$(echo $LINE | cut -d' ' -f2)
+	sed -n "${start},${end}p" ${file} > ${count}-${file}.tex
+	sed -i "/@l/d" ${count}-${file}.tex
+	sed "${start},${end}s/.*/@input@${count}-${file}.tex@/g" copy-${file} > copy-${count}-${file}
+	mv copy-${count}-${file} copy-${file}
+	count=$((count + 1))
 done
 
 CODEBLOCK=N; # Global variable to determine whether or not we have a code block in the file
@@ -27,48 +29,48 @@ a='```'
 ptrn="${a}@C@?[a-z]*@?[a-z]*"
 sed -E -n "/^${ptrn}/=" ${file} | awk '{if (NR % 2 == 0) { print $1} else {printf $1 "\t" }}' | while read LINE;
 do \
-	start=$(echo $LINE | cut -d' ' -f1); \
-	end=$(echo $LINE | cut -d' ' -f2); \
+	start=$(echo $LINE | cut -d' ' -f1)
+	end=$(echo $LINE | cut -d' ' -f2)
 	lang=$(sed -n "${start}p" ${file} | cut -d'@' -f3)
 	#FIXME: figure out why the line below causes marktex to miss extra codeblocks...
-	#! [ -z $(sed -n "${start}p" | cut -d'@' -f4) ] && langfile="$(sed -n "${start}p" | cut -d'@' -f4)"; \
-	sed -n "${start},${end}p" ${file} > ${count}-code-${file}.tmp.${lang}; \
-	sed -E -i "/$ptrn/d" ${count}-code-${file}.tmp.${lang}; \
-	source-highlight --src-lang "${lang}" --out-format latexcolor -o "${count}-code-${file}.tex" -i "${count}-code-${file}.tmp.${lang}" ; \
-	rm ${count}-code-${file}.tmp.${lang}; \
-	CODEBLOCK=Y; \
-	sed "${start},${end}s/.*/@input@${count}-code-${file}.tex@/g" copy-${file} > copy-${count}-${file}; \
-	mv copy-${count}-${file} copy-${file} ; \
-	count=$((count + 1)); \
+	#! [ -z $(sed -n "${start}p" | cut -d'@' -f4) ] && langfile="$(sed -n "${start}p" | cut -d'@' -f4)"
+	sed -n "${start},${end}p" ${file} > ${count}-code-${file}.tmp.${lang}
+	sed -E -i "/$ptrn/d" ${count}-code-${file}.tmp.${lang}
+	source-highlight --src-lang "${lang}" --out-format latexcolor -o "${count}-code-${file}.tex" -i "${count}-code-${file}.tmp.${lang}"
+	rm ${count}-code-${file}.tmp.${lang}
+	CODEBLOCK=Y
+	sed "${start},${end}s/.*/@input@${count}-code-${file}.tex@/g" copy-${file} > copy-${count}-${file}
+	mv copy-${count}-${file} copy-${file}
+	count=$((count + 1))
 done
 
-count=0; sed -n "/@c/=" ${file} | while read LINE; \
-do \
-	sed -n "${LINE}p" ${file} > ${count}-cite-${file}.tex; \
-	sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\\\\autocite{\1}/g" ${count}-cite-${file}.tex; \
-	sed "${LINE}s/@c.*@c/@input@${count}-cite-${file}.tex@/" copy-${file} > copy-${count}-${file}; \
-	mv copy-${count}-${file} copy-${file} ; \
-	count=$((count + 1)); \
+count=0; sed -n "/@c/=" ${file} | while read LINE
+do
+	sed -n "${LINE}p" ${file} > ${count}-cite-${file}.tex
+	sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\\\\autocite{\1}/g" ${count}-cite-${file}.tex
+	sed "${LINE}s/@c.*@c/@input@${count}-cite-${file}.tex@/" copy-${file} > copy-${count}-${file}
+	mv copy-${count}-${file} copy-${file}
+	count=$((count + 1))
 done
 
 # Handle the Preamble block; this is only ran *once*
-if grep -E -q "^@p$" ${file}; \
-then \
-	PREAM=$(sed -n "/^@p$/=" ${file} | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "\t" }}'); \
-	start=$(echo $PREAM | cut -d' ' -f1); \
-	end=$(echo $PREAM | cut -d' ' -f2); \
-	sed -n "${start},${end}p" ${file} > preamble-${file}.tex; \
-	sed -i "/@p/d" preamble-${file}.tex; \
-	sed -i "${start},${end}s/.*/@pre@preamble-${file}.tex@/g" copy-${file}; \
-fi;
+if grep -E -q "^@p$" ${file}
+then
+	PREAM=$(sed -n "/^@p$/=" ${file} | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "\t" }}')
+	start=$(echo $PREAM | cut -d' ' -f1)
+	end=$(echo $PREAM | cut -d' ' -f2)
+	sed -n "${start},${end}p" ${file} > preamble-${file}.tex
+	sed -i "/@p/d" preamble-${file}.tex
+	sed -i "${start},${end}s/.*/@pre@preamble-${file}.tex@/g" copy-${file}
+fi
 # Now we are on to the @m tokens
-#count=0; sed -n "/@m/=" ${file} | while read LINE; \
+#count=0; sed -n "/@m/=" ${file} | while read LINE
 #do \
-#	sed -n "${LINE}p" ${file} > ${count}-math-${file}.tex; \
-#	sed -i -e "s=^[^@]*@m=@m=" -e "s/@m/$/g" ${count}-math-${file}.tex; \
-#	sed "${LINE}s/@m.*@m/@input{${count}-math-${file}.tex}/" copy-${file} > copy-${count}-${file}; \
-#	mv copy-${count}-${file} copy-${file} ; \
-#	count=$((count + 1)); \
+#	sed -n "${LINE}p" ${file} > ${count}-math-${file}.tex
+#	sed -i -e "s=^[^@]*@m=@m=" -e "s/@m/$/g" ${count}-math-${file}.tex
+#	sed "${LINE}s/@m.*@m/@input{${count}-math-${file}.tex}/" copy-${file} > copy-${count}-${file}
+#	mv copy-${count}-${file} copy-${file}
+#	count=$((count + 1))
 #done
 uniq copy-${file} > detex-${file};
 rm copy-${file};
@@ -76,12 +78,12 @@ rm copy-${file};
 lowdown -s -Tlatex --parse-math detex-${file} -o ${file}.tex;
 rm detex-${file};
 
-if grep -q "@pre@" ${file}.tex; \
-then \
-	PREAMINC=$(grep "@pre@" ${file}.tex | sed -E "s=@pre@(.*)@=input{\1}="); \
-	sed -i -E  "s=^(\\\\documentclass\[[a-zA-Z0-9,]*\]\{[a-zA-Z]*})$=\1\n\n\\\\$PREAMINC=" ${file}.tex; \
-	sed -i -E "s=^@pre@.*$==" ${file}.tex; \
-fi;
+if grep -q "@pre@" ${file}.tex
+then
+	PREAMINC=$(grep "@pre@" ${file}.tex | sed -E "s=@pre@(.*)@=input{\1}=")
+	sed -i -E  "s=^(\\\\documentclass\[[a-zA-Z0-9,]*\]\{[a-zA-Z]*})$=\1\n\n\\\\$PREAMINC=" ${file}.tex
+	sed -i -E "s=^@pre@.*$==" ${file}.tex
+fi
 sed -i -E "s=@input@([^@]*)@=\\\\input{\1}=" ${file}.tex;
 
 
