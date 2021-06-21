@@ -57,7 +57,16 @@ The quick brown fox jumped over the lazy hare
 .
 ```
 
-## Inline Code
+## Code Blocks
 
 TODO: Figure this out
+
+### Current Idea
+
+Wrap code blocks like so:
+	```{py}{optionalfile}
+	def fun(n):
+	return n * n
+	```
+
 
