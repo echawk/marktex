@@ -59,30 +59,17 @@ The quick brown fox jumped over the lazy hare
 
 ## Code Blocks
 
-TODO: Figure this out
+To embed code in your markdown file, write it in this format:
 
-### Current Idea
-
-Wrap code blocks like so:
-
-	```{py}{optionalfile}
-	def fun(n):
-		return n * n
-	```
-
-### Other Ideas
-
-Wrap code blocks like so:
-
-	@C@py@optionalfile
-	def fun(n):
-		return n * n
-	@C
-
-
-A mix of both above:
-
-	```@C@py@optionalfile
+	```@C@lang@optionalfile
 	def fun(n):
 		return n * n
 	```@C
+
+Where `lang` is a language available from source-highlight, and
+`optionalfile` is an optional file for your code to be sent to.
+The `optionalfile` will be created on the fly; it's assumed to
+be nonexistent at runtime.
+
+
+
