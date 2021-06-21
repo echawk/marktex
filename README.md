@@ -53,6 +53,7 @@ To get rid of all of the generated files, run `make clean`
 
 
 ## TODO
+- [ ] Refactor `marktex` to be easier to follow; don't use as many compound variable names...
 - [x] Add in support for the preamble
 	- The preamble is tested well in the 'marktex' script, however it has not been throughly tested with the makefile
 - [ ] Add in support to change the document class (ideally in the preamble section)
