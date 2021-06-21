@@ -30,11 +30,12 @@ do \
 	start=$(echo $LINE | cut -d' ' -f1); \
 	end=$(echo $LINE | cut -d' ' -f2); \
 	lang=$(sed -n "${start}p" ${file} | cut -d'@' -f3)
-	! [ -z $(sed -n "${start}p" | cut -d'@' -f4) ] && langfile="$(sed -n "${start}p" | cut -d'@' -f4)"
+	#FIXME: figure out why the line below causes marktex to miss extra codeblocks...
+	#! [ -z $(sed -n "${start}p" | cut -d'@' -f4) ] && langfile="$(sed -n "${start}p" | cut -d'@' -f4)"; \
 	sed -n "${start},${end}p" ${file} > ${count}-code-${file}.tmp.${lang}; \
 	sed -E -i "/$ptrn/d" ${count}-code-${file}.tmp.${lang}; \
 	source-highlight -s "${lang}" --out-format=latexcolor -o "${count}-code-${file}.tex" -i "${count}-code-${file}.tmp.${lang}" ; \
-	#rm ${count}-code-${file}.tmp; \
+	rm ${count}-code-${file}.tmp; \
 	CODEBLOCK=Y; \
 	sed "${start},${end}s/.*/@input@${count}-code-${file}.tex@/g" copy-${file} > copy-${count}-${file}; \
 	mv copy-${count}-${file} copy-${file} ; \
