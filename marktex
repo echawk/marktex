@@ -22,6 +22,25 @@ do \
 	count=$((count + 1)); \
 done
 
+CODEBLOCK=N; # Global variable to determine whether or not we have a code block in the file
+a='```'
+ptrn="${a}@C@?[a-z]*@?[a-z]*"
+sed -E -n "/^${ptrn}/=" ${file} | awk '{if (NR % 2 == 0) { print $1} else {printf $1 "\t" }}' | while read LINE;
+do \
+	start=$(echo $LINE | cut -d' ' -f1); \
+	end=$(echo $LINE | cut -d' ' -f2); \
+	lang=$(sed -n "${start}p" ${file} | cut -d'@' -f3)
+	! [ -z $(sed -n "${start}p" | cut -d'@' -f4) ] && langfile="$(sed -n "${start}p" | cut -d'@' -f4)"
+	sed -n "${start},${end}p" ${file} > ${count}-code-${file}.tmp.${lang}; \
+	sed -E -i "/$ptrn/d" ${count}-code-${file}.tmp.${lang}; \
+	source-highlight -s "${lang}" --out-format=latexcolor -o "${count}-code-${file}.tex" -i "${count}-code-${file}.tmp.${lang}" ; \
+	#rm ${count}-code-${file}.tmp; \
+	CODEBLOCK=Y; \
+	sed "${start},${end}s/.*/@input@${count}-code-${file}.tex@/g" copy-${file} > copy-${count}-${file}; \
+	mv copy-${count}-${file} copy-${file} ; \
+	count=$((count + 1)); \
+done
+
 count=0; sed -n "/@c/=" ${file} | while read LINE; \
 do \
 	sed -n "${LINE}p" ${file} > ${count}-cite-${file}.tex; \
