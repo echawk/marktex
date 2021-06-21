@@ -80,3 +80,9 @@ Wrap code blocks like so:
 	@C
 
 
+A mix of both above:
+
+	```@C@py@optionalfile
+	def fun(n):
+		return n * n
+	```@C
