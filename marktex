@@ -13,10 +13,10 @@ GENFILES="$(mktemp)"
 # Handle the LaTeX blocks
 count=0
 cp "${file}" "copy-${file}"
-sed -n "/^@l$/=" "${file}" | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "\t" }}' | while read -r LINE
+sed -n "/^@l$/=" "${file}" | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "," }}' | while read -r LINE
 do
-	start=$(echo $LINE | cut -d' ' -f1)
-	end=$(echo $LINE | cut -d' ' -f2)
+	start=${LINE%%,*}
+	end=${LINE##*,}
 	cf="${count}-${file}.tex"
 	sed -n "${start},${end}p" "${file}" > "$cf"
 	sed -i "/@l/d" "$cf"
@@ -40,10 +40,10 @@ CODESRCFILES="$(grep -E "${ptrn}" "${file}" | cut -d"@" -f4 | sort -u)"
 	done
 }
 
-sed -E -n "/^${ptrn}/=" "${file}" | awk '{if (NR % 2 == 0) { print $1} else {printf $1 "\t" }}' | while read -r LINE;
-do \
-	start=$(echo $LINE | cut -d' ' -f1)
-	end=$(echo $LINE | cut -d' ' -f2)
+sed -E -n "/^${ptrn}/=" "${file}" | awk '{if (NR % 2 == 0) { print $1 } else { printf $1 "," }}' | while read -r LINE
+do
+	start=${LINE%%,*}
+	end=${LINE##*,}
 	lang=$(sed -n "${start}p" "${file}" | cut -d'@' -f3)
 	[ -n "$(sed -n "${start}p" "${file}" | cut -d'@' -f4)" ] && langfile="$(sed -n "${start}p" "${file}" | cut -d'@' -f4)" || langfile=""
 	tl="${count}-code-${file}.tmp.${lang}"
@@ -60,7 +60,7 @@ do \
 done
 
 count=0
-sed -n "/@c/=" "${file}" | while read -r LINE
+sed -n "/@c.*@c.*/=" "${file}" | while read -r LINE
 do
 	cf="${count}-cite-${file}.tex"
 	sed -n "${LINE}p" "${file}" > "$cf"
@@ -74,9 +74,9 @@ done
 # Handle the Preamble block; this is only ran *once*
 if grep -E -q "^@p$" "${file}"
 then
-	PREAM=$(sed -n "/^@p$/=" "${file}" | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "\t" }}')
-	start=$(echo $PREAM | cut -d' ' -f1)
-	end=$(echo $PREAM | cut -d' ' -f2)
+	PREAM=$(sed -n "/^@p$/=" "${file}" | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "," }}')
+	start=${PREAM%%,*}
+	end=${PREAM##*,}
 	sed -n "${start},${end}p" "${file}" > "preamble-${file}.tex"
 	sed -i "/@p/d" "preamble-${file}.tex"
 	sed -i "${start},${end}s/.*/@pre@preamble-${file}.tex@/g" "copy-${file}"
