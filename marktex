@@ -17,11 +17,12 @@ sed -n "/^@l$/=" "${file}" | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "
 do
 	start=$(echo $LINE | cut -d' ' -f1)
 	end=$(echo $LINE | cut -d' ' -f2)
-	sed -n "${start},${end}p" "${file}" > "${count}-${file}.tex"
-	sed -i "/@l/d" "${count}-${file}.tex"
-	sed "${start},${end}s/.*/@input@${count}-${file}.tex@/g" "copy-${file}" > "copy-${count}-${file}"
+	cf="${count}-${file}.tex"
+	sed -n "${start},${end}p" "${file}" > "$cf"
+	sed -i "/@l/d" "$cf"
+	sed "${start},${end}s/.*/@input@${cf}@/g" "copy-${file}" > "copy-${count}-${file}"
 	mv "copy-${count}-${file}" "copy-${file}"
-	echo "${count}-${file}.tex" >> "$GENFILES"
+	echo "$cf" >> "$GENFILES"
 	count=$((count + 1))
 done
 
@@ -45,11 +46,12 @@ do \
 	end=$(echo $LINE | cut -d' ' -f2)
 	lang=$(sed -n "${start}p" "${file}" | cut -d'@' -f3)
 	[ -n "$(sed -n "${start}p" "${file}" | cut -d'@' -f4)" ] && langfile="$(sed -n "${start}p" "${file}" | cut -d'@' -f4)" || langfile=""
-	sed -n "${start},${end}p" "${file}" > "${count}-code-${file}.tmp.${lang}"
-	sed -E -i "/$ptrn/d" "${count}-code-${file}.tmp.${lang}"
-	[ -n "$langfile" ] && cat "${count}-code-${file}.tmp.${lang}" >> "$langfile"
-	source-highlight --src-lang "${lang}" --out-format latexcolor -o "${count}-code-${file}.tex" -i "${count}-code-${file}.tmp.${lang}"
-	rm "${count}-code-${file}.tmp.${lang}"
+	tl="${count}-code-${file}.tmp.${lang}"
+	sed -n "${start},${end}p" "${file}" > "$tl"
+	sed -E -i "/$ptrn/d" "$tl"
+	[ -n "$langfile" ] && cat "$tl" >> "$langfile"
+	source-highlight --src-lang "${lang}" --out-format latexcolor -o "${count}-code-${file}.tex" -i "$tl"
+	rm "$tl"
 	CODEBLOCK=Y
 	sed "${start},${end}s/.*/@input@${count}-code-${file}.tex@/g" "copy-${file}" > "copy-${count}-${file}"
 	mv "copy-${count}-${file}" "copy-${file}"
@@ -60,11 +62,12 @@ done
 count=0
 sed -n "/@c/=" "${file}" | while read -r LINE
 do
-	sed -n "${LINE}p" "${file}" > "${count}-cite-${file}.tex"
-	sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\\\\autocite{\1}/g" "${count}-cite-${file}.tex"
-	sed "${LINE}s/@c.*@c/@input@${count}-cite-${file}.tex@/" "copy-${file}" > "copy-${count}-${file}"
+	cf="${count}-cite-${file}.tex"
+	sed -n "${LINE}p" "${file}" > "$cf"
+	sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\\\\autocite{\1}/g" "$cf"
+	sed "${LINE}s/@c.*@c/@input@${cf}@/" "copy-${file}" > "copy-${count}-${file}"
 	mv "copy-${count}-${file}" "copy-${file}"
-	echo "${count}-cite-${file}.tex" >> "$GENFILES"
+	echo "$cf" >> "$GENFILES"
 	count=$((count + 1))
 done
 
@@ -105,7 +108,7 @@ sed -i -E "s=@input@([^@]*)@=\\\\input{\1}=" "${file}.tex"
 
 ${TEXCC} "${file}.tex"
 
-for f in $(cat $GENFILES)
+for f in $(cat "$GENFILES")
 do
 	rm -v "$f"
 done
