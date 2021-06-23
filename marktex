@@ -40,7 +40,7 @@ do
 			;;
 		-h|--help)
 			shift
-			printf "$HELP"
+			printf "%s" "$HELP"
 			exit 1
 			;;
 		-f|--file)
@@ -157,7 +157,14 @@ then
 	sed -i -E  "s=^(\\\\documentclass\[[a-zA-Z0-9,]*\]\{[a-zA-Z]*})$=\1\n\n\\\\$PREAMINC=" "${file}.tex"
 	sed -i -E "s=^@pre@.*$==" "${file}.tex"
 fi
-sed -i -E "s=@input@([^@]*)@=\\\\input{\1}=" "${file}.tex"
+#inputfiles="$(grep -E "@input@" "${file}.tex" | cut -d"@" -f3)"
+#grep -E "@input@" "${file}.tex" | cut -d"@" -f3 | while read -r intputfile
+# TODO: See if this for loop can be written as a while loop
+for inputfile in $(grep -E "@input@" "${file}.tex" | cut -d"@" -f3 | tr '\n' ' ')
+do
+	sed -i "/@input@$inputfile@/r $inputfile" "${file}.tex"
+	sed -i "/@input@$inputfile@/d"            "${file}.tex"
+done
 
 # Compile with the right compiler
 ${TEXCC} "${file}.tex"
