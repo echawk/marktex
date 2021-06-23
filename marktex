@@ -17,7 +17,7 @@ HELP="$USAGE
 	Set the output format to groff
 -w, --html
 	Set the output format to html
--p, --plain
+-m, --markdown
 	Set the output format to be markdown (clears the document of any extensions)
 -h, --help
 	Print this message
@@ -35,7 +35,7 @@ do
 		-w|--html)
 			shift
 			;;
-		-p|--plain)
+		-m|--markdown)
 			shift
 			;;
 		-h|--help)
