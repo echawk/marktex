@@ -53,9 +53,13 @@ To get rid of all of the generated files, run `make clean`
 * source-highlight
 
 ## TODO
+- [ ] Rename `marktex` to something more broad, since I don't want a hard dependency on LaTeX
+	- I'm thinking `lmdc` as a possible alternative, but I think the name should have a vowel
 - [ ] Refactor `marktex` to be easier to follow; don't use as many compound variable names...
 	- [ ] extract the different parsers to their own scripts
-- [ ] Consider changing the extension to represent that this isn't typical markdown; I'm thinking `.mdl`
+		- **NOTE:** Right now I'm am putting this on hold; I'll start work on this once marktex is completed
+- [ ] Consider changing the extension to represent that this isn't typical markdown; I'm thinking `.lmd`
+	- I think this extension is appropriate considering marktex's use case and origin: using LaTeX to extend markdown and literate programming
 - [x] Add in support for the preamble
 	- The preamble is tested well in the 'marktex' script, however it has not been throughly tested with the makefile
 - [ ] Add in support to change the document class (ideally in the preamble section)
