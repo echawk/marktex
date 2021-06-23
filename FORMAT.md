@@ -8,21 +8,24 @@ marktex uses different tags, all starting with an
 '@' symbol. This is for ease of typing, as well as
 being an unused symbol in most markup langauges.
 
-## LaTeX Blocks
+## Raw Blocks
 
-To denote a LaTeX context, use '@l' tokens like so:
+To denote a raw context, use '@r' tokens like so:
 
 ```
-@l
+@r
 \begin{center}
 Here is some example text
 \end{center}
-@l
+@r
 ```
 
 It is important to note that these tokens behave in the
 same way that groff tokens work; they must be at the
 start of the line.
+
+The text written between the two tokens will be copied
+directly into the final document.
 
 ## Preamble Block
 

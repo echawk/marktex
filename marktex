@@ -38,19 +38,20 @@ done
 # Handle the LaTeX blocks
 count=0
 cp "${file}" "copy-${file}"
-sed -n "/^@l$/=" "${file}" | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "," }}' | while read -r LINE
+sed -n "/^@r$/=" "${file}" | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "," }}' | while read -r LINE
 do
 	start=${LINE%%,*}
 	end=${LINE##*,}
 	cf="${count}-${file}.tex"
 	sed -n "${start},${end}p" "${file}" > "$cf"
-	sed -i "/@l/d" "$cf"
+	sed -i "/@r/d" "$cf"
 	sed "${start},${end}s/.*/@input@${cf}@/g" "copy-${file}" > "copy-${count}-${file}"
 	mv "copy-${count}-${file}" "copy-${file}"
 	echo "$cf" >> "$GENFILES"
 	count=$((count + 1))
 done
 
+# Create the code files; both in the output document format and as an independent file (if applicable)
 count=0
 CODEBLOCK=N # Global variable to determine whether or not we have a code block in the file; if Y, then \usepackage[dvipsnames]{xcolor}
 a='```'
@@ -84,6 +85,7 @@ do
 	count=$((count + 1))
 done
 
+# Create the citation files
 count=0
 sed -n "/@c.*@c.*/=" "${file}" | while read -r LINE
 do
@@ -97,6 +99,7 @@ do
 done
 
 # Handle the Preamble block; this is only ran *once*
+# Create the Preamble file
 if grep -E -q "^@p$" "${file}"
 then
 	PREAM=$(sed -n "/^@p$/=" "${file}" | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "," }}')
@@ -116,12 +119,16 @@ fi
 #	mv copy-${count}-${file} copy-${file}
 #	count=$((count + 1))
 #done
+
+# Get rid of duplicate lines
 uniq "copy-${file}" > "detex-${file}"
 rm "copy-${file}"
 
+# Comile the cleaned markdown with lowdown into the proper output format
 lowdown -s -Tlatex --parse-math "detex-${file}" -o "${file}.tex";
 rm "detex-${file}"
 
+# Add in the preamble and the actually input the '@input' files
 if grep -q "@pre@" "${file}.tex"
 then
 	PREAMINC=$(grep "@pre@" "${file}.tex" | sed -E "s=@pre@(.*)@=input{\1}=")
@@ -130,9 +137,10 @@ then
 fi
 sed -i -E "s=@input@([^@]*)@=\\\\input{\1}=" "${file}.tex"
 
-
+# Compile with the right compiler
 ${TEXCC} "${file}.tex"
 
+# Remove temporary files
 for f in $(cat "$GENFILES")
 do
 	rm -v "$f"
