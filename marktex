@@ -84,7 +84,9 @@ CODESRCFILES="$(grep -E "${ptrn}" "${file}" | cut -d"@" -f4 | sort -u)"
 [ -n "$CODESRCFILES" ] && {
 	for srcf in $CODESRCFILES
 	do
-		rm -v "$srcf"
+		[ -e "$srcf" ] && {
+			rm -v "$srcf"
+		}
 	done
 }
 
