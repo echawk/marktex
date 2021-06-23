@@ -1,0 +1,22 @@
+#!/bin/sh
+
+file=$1
+
+GENFILES=$2
+
+count=0
+cp "${file}" "copy-${file}"
+sed -n "/^@r$/=" "${file}" | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "," }}' | while read -r LINE
+do
+	start=${LINE%%,*}
+	end=${LINE##*,}
+	cf="${count}-${file}.mdraw"
+	sed -n "${start},${end}p" "${file}" > "$cf"
+	sed -i "/@r/d" "$cf"
+	sed "${start},${end}s/.*/@input@${cf}@/g" "copy-${file}" > "copy-${count}-${file}"
+	mv "copy-${count}-${file}" "copy-${file}"
+	echo "$cf" >> "$GENFILES"
+	count=$((count + 1))
+done
+
+printf "%s %s" "${file}" "$2"
