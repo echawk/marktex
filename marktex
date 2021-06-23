@@ -10,6 +10,31 @@
 TEXCC=${TEXCC:-pdflatex}
 file=$1
 GENFILES="$(mktemp)"
+
+for arg in "$@"
+do
+	case $arg in
+		-l|--latex)
+			shift
+			;;
+		-g|--groff)
+			shift
+			;;
+		-w|--html)
+			shift
+			;;
+		-p|--plain)
+			shift
+			;;
+		-h|--help)
+			shift
+			;;
+		*)
+			shift
+			;;
+	esac
+done
+
 # Handle the LaTeX blocks
 count=0
 cp "${file}" "copy-${file}"
