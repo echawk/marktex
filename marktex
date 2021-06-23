@@ -77,8 +77,7 @@ done
 # Create the code files; both in the output document format and as an independent file (if applicable)
 count=0
 CODEBLOCK=N # Global variable to determine whether or not we have a code block in the file; if Y, then \usepackage[dvipsnames]{xcolor}
-a='```'
-ptrn="${a}@C@?[a-z]*@?[a-z]*"
+ptrn='```@C@?[a-z]*@?[a-z]*'
 
 CODESRCFILES="$(grep -E "${ptrn}" "${file}" | cut -d"@" -f4 | sort -u)"
 
