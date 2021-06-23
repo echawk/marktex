@@ -54,8 +54,8 @@ do
 	cf="${count}-${file}.tex"
 	sed -n "${start},${end}p" "${file}" > "$cf"
 	sed -i "/@r/d" "$cf"
-	sed "${start},${end}s/.*/@input@${cf}@/g" "copy-${file}" > "copy-${count}-${file}"
-	mv "copy-${count}-${file}" "copy-${file}"
+	sed "${start},${end}s/.*/@input@${cf}@/g" "copy-${file}" > "copy-${cf%%.*}"
+	mv "copy-${cf%%.*}" "copy-${file}"
 	echo "$cf" >> "$GENFILES"
 	count=$((count + 1))
 done
@@ -85,12 +85,12 @@ do
 	sed -n "${start},${end}p" "${file}" > "$tl"
 	sed -E -i "/$ptrn/d" "$tl"
 	[ -n "$langfile" ] && cat "$tl" >> "$langfile"
-	source-highlight --src-lang "${lang}" --out-format latexcolor -o "${count}-code-${file}.tex" -i "$tl"
+	source-highlight --src-lang "${lang}" --out-format latexcolor -o "${tl%%.*}.tex" -i "$tl"
 	rm "$tl"
 	CODEBLOCK=Y
-	sed "${start},${end}s/.*/@input@${count}-code-${file}.tex@/g" "copy-${file}" > "copy-${count}-${file}"
+	sed "${start},${end}s/.*/@input@${tl%%.*}.tex@/g" "copy-${file}" > "copy-${count}-${file}"
 	mv "copy-${count}-${file}" "copy-${file}"
-	echo "${count}-code-${file}.tex" >> "$GENFILES"
+	echo "${tl%%.*}.tex" >> "$GENFILES"
 	count=$((count + 1))
 done
 
