@@ -7,7 +7,21 @@
 # this is what is responsible for handling the @l tokens, and latex
 # code in between them
 
-HELP="TODO"
+USAGE="Usage: marktex [-lgwph] [-f file]"
+HELP="$USAGE
+-f, --file FILE
+	Set the input file to FILE
+-l, --latex
+	Set the output format to LaTeX
+-g, --groff
+	Set the output format to groff
+-w, --html
+	Set the output format to html
+-p, --plain
+	Set the output format to be markdown (clears the document of any extensions)
+-h, --help
+	Print this message
+"
 
 for arg in "$@"
 do
@@ -26,7 +40,7 @@ do
 			;;
 		-h|--help)
 			shift
-			echo $HELP
+			printf "$HELP"
 			exit 1
 			;;
 		-f|--file)
@@ -40,7 +54,7 @@ do
 	esac
 done
 
-[ -z "$file" ] && echo "No file! Exiting..." && exit 1
+[ -z "$file" ] && echo "$USAGE" && echo "No file! Exiting..." && exit 1
 
 TEXCC=${TEXCC:-pdflatex}
 GENFILES="$(mktemp)"
