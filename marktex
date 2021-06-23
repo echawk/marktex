@@ -14,7 +14,7 @@ HELP="$USAGE
 -l, --latex
 	Set the output format to LaTeX
 -g, --groff
-	Set the output format to groff
+	Set the output format to groff (ms macros)
 -w, --html
 	Set the output format to html
 -m, --markdown
