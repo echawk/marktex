@@ -114,7 +114,7 @@ do
 	cf="${count}-cite-${file}.tex"
 	sed -n "${LINE}p" "${file}" > "$cf"
 	sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\\\\autocite{\1}/g" "$cf"
-	sed "${LINE}s/@c.*@c/@input@${cf}@/" "copy-${file}" > "copy-${count}-${file}"
+	sed "${LINE}s/@c.*@c/\n@input@${cf}@\n/" "copy-${file}" > "copy-${count}-${file}"
 	mv "copy-${count}-${file}" "copy-${file}"
 	echo "$cf" >> "$GENFILES"
 	count=$((count + 1))
