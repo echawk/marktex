@@ -7,9 +7,7 @@
 # this is what is responsible for handling the @l tokens, and latex
 # code in between them
 
-TEXCC=${TEXCC:-pdflatex}
-file=$1
-GENFILES="$(mktemp)"
+HELP="TODO"
 
 for arg in "$@"
 do
@@ -28,6 +26,13 @@ do
 			;;
 		-h|--help)
 			shift
+			echo $HELP
+			exit 1
+			;;
+		-f|--file)
+			shift
+			file="$1"
+			shift
 			;;
 		*)
 			shift
@@ -35,6 +40,10 @@ do
 	esac
 done
 
+[ -z "$file" ] && echo "No file! Exiting..." && exit 1
+
+TEXCC=${TEXCC:-pdflatex}
+GENFILES="$(mktemp)"
 # Handle the LaTeX blocks
 count=0
 cp "${file}" "copy-${file}"
