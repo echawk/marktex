@@ -22,20 +22,24 @@ HELP="$USAGE
 -h, --help
 	Print this message
 "
-
+OUTFMT="latex"
 for arg in "$@"
 do
 	case $arg in
 		-l|--latex)
+			OUTFMT="latex"
 			shift
 			;;
 		-g|--groff)
+			OUTFMT="groff"
 			shift
 			;;
 		-w|--html)
+			OUTFMT="html"
 			shift
 			;;
 		-m|--markdown)
+			OUTFMT="md"
 			shift
 			;;
 		-h|--help)
@@ -56,6 +60,14 @@ done
 
 [ -z "$file" ] && echo "$USAGE" && echo "No file! Exiting..." && exit 1
 
+case $OUTFMT in
+	latex) ext="tex" ;;
+	groff) ext="ms"  ;;
+	html)  ext="html";;
+	md)    ext="md"  ;;
+esac
+
+echo "ext: $ext"
 TEXCC=${TEXCC:-pdflatex}
 GENFILES="$(mktemp)"
 # Handle the LaTeX blocks
@@ -66,7 +78,7 @@ do
 	start=${LINE%%,*}
 	end=${LINE##*,}
 	#FIXME: LaTeX Only
-	cf="${count}-${file}.tex"
+	cf="${count}-${file}.${ext}"
 	sed -n "${start},${end}p" "${file}" > "$cf"
 	sed -i "/@r/d" "$cf"
 	sed "${start},${end}s/.*/@input@${cf}@/g" "copy-${file}" > "copy-${cf%%.*}"
@@ -102,13 +114,13 @@ do
 	sed -E -i "/$ptrn/d" "$tl"
 	[ -n "$langfile" ] && cat "$tl" >> "$langfile"
 	#FIXME: LaTeX Only
-	source-highlight --src-lang "${lang}" --out-format latexcolor -o "${tl%%.*}.tex" -i "$tl"
+	source-highlight --src-lang "${lang}" --out-format latexcolor -o "${tl%%.*}.${ext}" -i "$tl"
 	rm "$tl"
 	CODEBLOCK=Y
 	#FIXME: LaTeX Only
-	sed "${start},${end}s/.*/@input@${tl%%.*}.tex@/g" "copy-${file}" > "copy-${count}-${file}"
+	sed "${start},${end}s/.*/@input@${tl%%.*}.${ext}@/g" "copy-${file}" > "copy-${count}-${file}"
 	mv "copy-${count}-${file}" "copy-${file}"
-	echo "${tl%%.*}.tex" >> "$GENFILES"
+	echo "${tl%%.*}.${ext}" >> "$GENFILES"
 	count=$((count + 1))
 done
 
@@ -116,7 +128,7 @@ done
 count=0
 sed -n "/@c.*@c.*/=" "${file}" | while read -r LINE
 do
-	cf="${count}-cite-${file}.tex"
+	cf="${count}-cite-${file}.${ext}"
 	sed -n "${LINE}p" "${file}" > "$cf"
 	#FIXME: LaTeX Only
 	sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\\\\autocite{\1}/g" "$cf"
@@ -134,10 +146,10 @@ then
 	PREAM=$(sed -n "/^@p$/=" "${file}" | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "," }}')
 	start=${PREAM%%,*}
 	end=${PREAM##*,}
-	sed -n "${start},${end}p" "${file}" > "preamble-${file}.tex"
-	sed -i "/@p/d" "preamble-${file}.tex"
-	sed -i "${start},${end}s/.*/@pre@preamble-${file}.tex@/g" "copy-${file}"
-	echo "preamble-${file}.tex" >> "$GENFILES"
+	sed -n "${start},${end}p" "${file}" > "preamble-${file}.${ext}"
+	sed -i "/@p/d" "preamble-${file}.${ext}"
+	sed -i "${start},${end}s/.*/@pre@preamble-${file}.${ext}@/g" "copy-${file}"
+	echo "preamble-${file}.${ext}" >> "$GENFILES"
 fi
 # Now we are on to the @m tokens
 #count=0; sed -n "/@m/=" ${file} | while read LINE
@@ -155,29 +167,29 @@ rm "copy-${file}"
 
 # Comile the cleaned markdown with lowdown into the proper output format
 	#FIXME: LaTeX Only
-lowdown -s -Tlatex --parse-math "detex-${file}" -o "${file}.tex";
+lowdown -s -Tlatex --parse-math "detex-${file}" -o "${file}.${ext}";
 rm "detex-${file}"
 
 # Add in the preamble and the actually input the '@input' files
 	#FIXME: LaTeX Only
-if grep -q "@pre@" "${file}.tex"
+if grep -q "@pre@" "${file}.${ext}"
 then
-	PREAMINC=$(grep "@pre@" "${file}.tex" | sed -E "s=@pre@(.*)@=input{\1}=")
-	sed -i -E  "s=^(\\\\documentclass\[[a-zA-Z0-9,]*\]\{[a-zA-Z]*})$=\1\n\n\\\\$PREAMINC=" "${file}.tex"
-	sed -i -E "s=^@pre@.*$==" "${file}.tex"
+	PREAMINC=$(grep "@pre@" "${file}.${ext}" | sed -E "s=@pre@(.*)@=input{\1}=")
+	sed -i -E  "s=^(\\\\documentclass\[[a-zA-Z0-9,]*\]\{[a-zA-Z]*})$=\1\n\n\\\\$PREAMINC=" "${file}.${ext}"
+	sed -i -E "s=^@pre@.*$==" "${file}.${ext}"
 fi
 #inputfiles="$(grep -E "@input@" "${file}.tex" | cut -d"@" -f3)"
 #grep -E "@input@" "${file}.tex" | cut -d"@" -f3 | while read -r intputfile
 # TODO: See if this for loop can be written as a while loop
-for inputfile in $(grep -E "@input@" "${file}.tex" | cut -d"@" -f3 | tr '\n' ' ')
+for inputfile in $(grep -E "@input@" "${file}.${ext}" | cut -d"@" -f3 | tr '\n' ' ')
 do
-	sed -i "/@input@$inputfile@/r $inputfile" "${file}.tex"
-	sed -i "/@input@$inputfile@/d"            "${file}.tex"
+	sed -i "/@input@$inputfile@/r $inputfile" "${file}.${ext}"
+	sed -i "/@input@$inputfile@/d"            "${file}.${ext}"
 done
 
 # Compile with the right compiler
 	#FIXME: LaTeX Only
-${TEXCC} "${file}.tex"
+${TEXCC} "${file}.${ext}"
 
 # Remove temporary files
 for f in $(cat "$GENFILES")
