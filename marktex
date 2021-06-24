@@ -130,7 +130,16 @@ do
 	cf="${count}-cite-${file}.${ext}"
 	sed -n "${LINE}p" "${file}" > "$cf"
 	#FIXME: LaTeX Only
-	sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\\\\autocite{\1}/g" "$cf"
+	case $OUTFMT in
+		latex)
+			sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\\\\autocite{\1}/g" "$cf"
+			;;
+		groff)
+			sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\n.[\n\1\n.]\n}/g" "$cf"
+			;;
+		html)
+			;;
+	esac
 	sed "${LINE}s/@c.*@c/\n@input@${cf}@\n/" "copy-${file}" > "copy-${count}-${file}"
 	mv "copy-${count}-${file}" "copy-${file}"
 	echo "$cf" >> "$GENFILES"
@@ -165,7 +174,6 @@ uniq "copy-${file}" > "detex-${file}"
 rm "copy-${file}"
 
 # Comile the cleaned markdown with lowdown into the proper output format
-	#FIXME: LaTeX Only
 lowdown -s -T${lowdownfmt} --parse-math "detex-${file}" -o "${file}.${ext}";
 rm "detex-${file}"
 
@@ -187,8 +195,11 @@ do
 done
 
 # Compile with the right compiler
-	#FIXME: LaTeX Only
-${TEXCC} "${file}.${ext}"
+case $OUTFMT in
+	latex) ${TEXCC} "${file}.${ext}";;
+	groff) cat "${file}.${ext}" | preconv | eqn -Tpdf | refer | tbl | pic | groff -mspdf -Tpdf > "${file}.pdf";;
+	html) ;;
+esac
 
 # Remove temporary files
 for f in $(cat "$GENFILES")
