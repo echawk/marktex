@@ -61,10 +61,10 @@ done
 [ -z "$file" ] && echo "$USAGE" && echo "No file! Exiting..." && exit 1
 
 case $OUTFMT in
-	latex) ext="tex" ;;
-	groff) ext="ms"  ;;
-	html)  ext="html";;
-	md)    ext="md"  ;;
+	latex) ext="tex" ; highlightfmt="latexcolor"    ; lowdownfmt="latex";;
+	groff) ext="ms"  ; highlightfmt="groff_mm_color"; lowdownfmt="ms"   ;;
+	html)  ext="html"; highlightfmt="html"          ; lowdownfmt="html" ;;
+	md)    ext="md"  ; highlightfmt="latexcolor"    ; lowdownfmt="latex";;
 esac
 
 echo "ext: $ext"
@@ -114,10 +114,9 @@ do
 	sed -E -i "/$ptrn/d" "$tl"
 	[ -n "$langfile" ] && cat "$tl" >> "$langfile"
 	#FIXME: LaTeX Only
-	source-highlight --src-lang "${lang}" --out-format latexcolor -o "${tl%%.*}.${ext}" -i "$tl"
+	source-highlight --src-lang "${lang}" --out-format "${highlightfmt}" -o "${tl%%.*}.${ext}" -i "$tl"
 	rm "$tl"
 	CODEBLOCK=Y
-	#FIXME: LaTeX Only
 	sed "${start},${end}s/.*/@input@${tl%%.*}.${ext}@/g" "copy-${file}" > "copy-${count}-${file}"
 	mv "copy-${count}-${file}" "copy-${file}"
 	echo "${tl%%.*}.${ext}" >> "$GENFILES"
@@ -167,7 +166,7 @@ rm "copy-${file}"
 
 # Comile the cleaned markdown with lowdown into the proper output format
 	#FIXME: LaTeX Only
-lowdown -s -Tlatex --parse-math "detex-${file}" -o "${file}.${ext}";
+lowdown -s -T${lowdownfmt} --parse-math "detex-${file}" -o "${file}.${ext}";
 rm "detex-${file}"
 
 # Add in the preamble and the actually input the '@input' files
