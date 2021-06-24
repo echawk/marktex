@@ -77,7 +77,6 @@ sed -n "/^@r$/=" "${file}" | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "
 do
 	start=${LINE%%,*}
 	end=${LINE##*,}
-	#FIXME: LaTeX Only
 	cf="${count}-${file}.${ext}"
 	sed -n "${start},${end}p" "${file}" > "$cf"
 	sed -i "/@r/d" "$cf"
@@ -113,7 +112,6 @@ do
 	sed -n "${start},${end}p" "${file}" > "$tl"
 	sed -E -i "/$ptrn/d" "$tl"
 	[ -n "$langfile" ] && cat "$tl" >> "$langfile"
-	#FIXME: LaTeX Only
 	source-highlight --src-lang "${lang}" --out-format "${highlightfmt}" -o "${tl%%.*}.${ext}" -i "$tl"
 	rm "$tl"
 	CODEBLOCK=Y
