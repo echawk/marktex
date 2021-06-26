@@ -42,17 +42,16 @@ pdf file, you can run `make separate` instead.
 To get rid of all of the generated files, run `make clean`
 
 ## Dependencies
-* lowdown
-* pdflatex
-* gnu make
-* sed with the '-i' flag
-* awk
-* uniq
-* grep
-* latexmk (used for the clean rule)
-* source-highlight
+
+software         | optional? | alternative
+----:            | -----:    | --:
+lowdown          | no        | na
+pdflatex         | yes       | roff/html
+source-highlight | yes       | don't highlight source code
+
 
 ## TODO
+- [ ] Update the README to better reflect the state of the project
 - [ ] Rename `marktex` to something more broad, since I don't want a hard dependency on LaTeX
 	- I'm thinking `lmdc` as a possible alternative, but I think the name should have a vowel
 - [ ] Refactor `marktex` to be easier to follow; don't use as many compound variable names...
@@ -75,6 +74,7 @@ To get rid of all of the generated files, run `make clean`
 	- This is currently what the `marktex` shell script does; it's where the main development is occuring
 - [x] Support proper inline math with the '@m' tags
 	- We don't have to support this ourselves; lowdown already offers a '--parse-math' flag to hande this.
+		- **NOTE:** This is LaTeX only
 
 ### Long Term
 - Reduce the dependence on LaTeX; add in the ability to use groff instead
