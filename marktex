@@ -133,7 +133,7 @@ do
 			sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\\\\autocite{\1}/g" "$cf"
 			;;
 		groff)
-			sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\n.[\n\1\n.]\n/g" "$cf"
+			sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\n.[\n\1\n.]\n/g" -e "s/;/\n/g" "$cf"
 			;;
 		html)
 			;;
