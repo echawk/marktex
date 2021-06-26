@@ -133,7 +133,7 @@ do
 			sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\\\\autocite{\1}/g" "$cf"
 			;;
 		groff)
-			sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\n.[\n\1\n.]\n}/g" "$cf"
+			sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\n.[\n\1\n.]\n/g" "$cf"
 			;;
 		html)
 			;;
@@ -202,7 +202,7 @@ done
 # Compile with the right compiler
 case $OUTFMT in
 	latex) ${TEXCC} "${file}.${ext}";;
-	groff) preconv < "${file}.${ext}" | eqn -Tpdf | refer | tbl | pic | groff -mspdf -Tpdf > "${file}.pdf";;
+	groff) refer < "${file}.${ext}" | preconv | eqn -Tpdf | tbl | pic | groff -mspdf -Tpdf > "${file}.pdf";;
 	html) ;;
 esac
 
