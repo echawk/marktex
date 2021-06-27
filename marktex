@@ -19,6 +19,8 @@ HELP="$USAGE
 	Set the output format to html
 -m, --markdown
 	Set the output format to be markdown (clears the document of any extensions)
+-gfm, --github-flavored-markdown
+	Set the output format to be github-flavored markdown
 -h, --help
 	Print this message
 "
@@ -40,6 +42,10 @@ do
 			;;
 		-m|--markdown)
 			OUTFMT="md"
+			shift
+			;;
+		-gfm|--github-flavored-markdown)
+			OUTFMT="gfm"
 			shift
 			;;
 		-h|--help)
@@ -65,12 +71,18 @@ case $OUTFMT in
 	groff) ext="ms"  ; highlightfmt="groff_mm_color"; lowdownfmt="ms"   ;;
 	html)  ext="html"; highlightfmt="html"          ; lowdownfmt="html" ;;
 	md)    ext="md"  ; highlightfmt="latexcolor"    ; lowdownfmt="latex";;
+	gfm)   ext="md"  ; highlightfmt=""              ; lowdownfmt=""     ;;
 esac
 
 echo "ext: $ext"
 TEXCC=${TEXCC:-pdflatex}
 GENFILES="$(mktemp)"
-# Handle the LaTeX blocks
+
+# markdown and github-flavored-markdown are special in that they
+# require very minimal preprocessing. The only preprocessing they
+# require is the removal of extensions, and fixing formatting.
+
+# Handle the raw blocks
 count=0
 cp "${file}" "copy-${file}"
 sed -n "/^@r$/=" "${file}" | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "," }}' | while read -r LINE
@@ -127,7 +139,6 @@ sed -n "/@c.*@c.*/=" "${file}" | while read -r LINE
 do
 	cf="${count}-cite-${file}.${ext}"
 	sed -n "${LINE}p" "${file}" > "$cf"
-	#FIXME: LaTeX Only
 	case $OUTFMT in
 		latex)
 			sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\\\\autocite{\1}/g" "$cf"
@@ -136,6 +147,7 @@ do
 			sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\n.[\n\1\n.]\n/g" -e "s/;/\n/g" "$cf"
 			;;
 		html)
+			#TODO: Add in HTML support
 			;;
 	esac
 	sed "${LINE}s/@c.*@c/\n@input@${cf}@\n/" "copy-${file}" > "copy-${count}-${file}"
@@ -184,6 +196,7 @@ fi
 
 # Add in the preamble and the actually input the '@input' files
 #FIXME: LaTeX Only
+#FIXME: Refactor - this is ugly
 if grep -q "@pre@" "${file}.${ext}"
 then
 	PREAMINC=$(grep "@pre@" "${file}.${ext}" | sed -E "s=@pre@(.*)@=input{\1}=")
