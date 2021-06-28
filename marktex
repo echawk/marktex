@@ -7,9 +7,9 @@
 # this is what is responsible for handling the @l tokens, and latex
 # code in between them
 
-USAGE="Usage: marktex [-lgwph] [-f file]"
+USAGE="Usage: marktex [-lgwmfch] [-i file]"
 HELP="$USAGE
--f, --file FILE
+-i, --input FILE
 	Set the input file to FILE
 -l, --latex
 	Set the output format to LaTeX
@@ -19,12 +19,15 @@ HELP="$USAGE
 	Set the output format to html
 -m, --markdown
 	Set the output format to be markdown (clears the document of any extensions)
--gfm, --github-flavored-markdown
+-f, --github-flavored-markdown
 	Set the output format to be github-flavored markdown
+-c, --color-source
+	Syntax highlight source code blocks
 -h, --help
 	Print this message
 "
 OUTFMT="latex"
+COLOR_SOURCE="N"
 for arg in "$@"
 do
 	case $arg in
@@ -44,8 +47,12 @@ do
 			OUTFMT="md"
 			shift
 			;;
-		-gfm|--github-flavored-markdown)
+		-f|--github-flavored-markdown)
 			OUTFMT="gfm"
+			shift
+			;;
+		-c|--color-source)
+			COLOR_SOURCE=Y
 			shift
 			;;
 		-h|--help)
@@ -53,7 +60,7 @@ do
 			printf "%s" "$HELP"
 			exit 1
 			;;
-		-f|--file)
+		-i|--input)
 			shift
 			file="$1"
 			shift
