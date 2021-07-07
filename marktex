@@ -89,6 +89,15 @@ GENFILES="$(mktemp)"
 # require very minimal preprocessing. The only preprocessing they
 # require is the removal of extensions, and fixing formatting.
 
+extract_text_between(){
+	start=${1%%,*}
+	end=${1##*,}
+	cf="${file}-$().${ext}"
+	sed -n "${start},${end}p" "${file}" > "$cf"
+	sed -i "/@r/d" "$cf"
+	sed "${start},${end}s/.*/@input@${cf}@/g" "copy-${file}" > "copy-${cf%%.*}"
+}
+
 # Handle the raw blocks
 count=0
 cp "${file}" "copy-${file}"
