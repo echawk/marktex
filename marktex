@@ -227,5 +227,5 @@ case $OUTFMT in
 esac
 
 # Remove temporary files
-cat "$GENFILES" | xargs -I{} rm -v {}
+cat "$GENFILES" | xargs -P0 -I{} rm -v {}
 rm "$GENFILES"
