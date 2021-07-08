@@ -112,7 +112,7 @@ extract_text_between(){
 	# ${cf%%.*} - ie : file.name -> file
 	sed "${start},${end}s/.*/@input@${cf}@/g" "copy-$2" > "copy-${cf%%.*}"
 	# 'return' the copy file we just made
-	printf "%s" "copy-${cf%%.*}"
+	printf "%s" "copy-${cf%%.*},${cf}"
 }
 
 # Handle the raw blocks
@@ -120,7 +120,7 @@ count=0
 cp "${file}" "copy-${file}"
 sed -n "/^@r$/=" "${file}" | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "," }}' | while read -r LINE
 do
-	mv "$(extract_text_between "$LINE" "${file}" "$count" "@r")" "copy-$file"
+	mv "$(extract_text_between "$LINE" "${file}" "$count" "@r" | cut -d',' -f1)" "copy-$file"
 	echo "${file}-${count}.${ext}" >> "$GENFILES"
 	count=$((count + 1))
 done
@@ -147,14 +147,19 @@ sed -E -n "/^${ptrn}/=" "${file}" | awk '{if (NR % 2 == 0) { print $1 } else { p
 do
 	start=${LINE%%,*}
 	end=${LINE##*,}
-
 	lang=$(sed -n "${start}p" "${file}" | cut -d'@' -f3)
 	[ -n "$(sed -n "${start}p" "${file}" | cut -d'@' -f4)" ] && langfile="$(sed -n "${start}p" "${file}" | cut -d'@' -f4)" || langfile=""
-	tl="${count}-code-${file}.tmp.${lang}"
 
+	tl="${count}-code-${file}.tmp.${lang}"
 	sed -n "${start},${end}p" "${file}" > "$tl"
 	sed -E -i "/$ptrn/d" "$tl"
 	[ -n "$langfile" ] && cat "$tl" >> "$langfile"
+
+	#genfiles="$(extract_text_between "$LINE" "${file}" "$count" '```@C@?[a-z]*@?[a-z]*')"
+	#[ -n "$langfile" ] && cat "${genfiles##,*}" >> "$langfile"
+
+#	source-highlight --src-lang "${lang}" --out-format "${highlightfmt}" -o "${tl%%.*}.${ext}" -i "${genfiles##,*}"
+#	rm "${genfiles##,*}"
 
 	# ${tl%%.*} - ie : file.name -> file
 	source-highlight --src-lang "${lang}" --out-format "${highlightfmt}" -o "${tl%%.*}.${ext}" -i "$tl"
