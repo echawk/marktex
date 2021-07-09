@@ -242,11 +242,7 @@ then
 	sed -i -E "s=^@pre@.*$==" "${file}.${ext}"
 fi
 
-# TODO: Rewrite using xargs
-for inputfile in $(grep -E "@input@" "${file}.${ext}" | cut -d"@" -f3 | tr '\n' ' ')
-do
-	sed -i -e "/@input@$inputfile@/r $inputfile" -e "/@input@$inputfile@/d"  "${file}.${ext}"
-done
+grep -E "@input@" "${file}.${ext}" | cut -d"@" -f3 | xargs -I{} sed -i -e "/@input@{}@/r {}" -e "/@input@{}@/d"  "${file}.${ext}"
 
 # Compile with the right compiler
 case $OUTFMT in
