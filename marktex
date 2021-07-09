@@ -126,10 +126,7 @@ ptrn='```@C@?[a-z]*@?[a-z]*'
 
 grep -Eq "${ptrn}" "${file}" && CODEBLOCK=Y
 
-CODESRCFILES="$(grep -E "${ptrn}" "${file}" | cut -d"@" -f4 | sort -u)"
-[ -n "$CODESRCFILES" ] && {
-	echo $CODESRCFILES | tr ' ' '\n' | xargs -P0 -I{} rm -vf "{}"
-}
+grep -E "${ptrn}" "${file}" | cut -d"@" -f4 | sort -u | xargs -P0 -I{} rm -vf "{}"
 
 sed -E -n "/^${ptrn}/=" "${file}" | awk '{if (NR % 2 == 0) { print $1 } else { printf $1 "," }}' | while read -r LINE
 do
