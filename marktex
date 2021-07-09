@@ -242,11 +242,10 @@ then
 	sed -i -E "s=^@pre@.*$==" "${file}.${ext}"
 fi
 
-# TODO: See if this for loop can be written as a while loop
+# TODO: Rewrite using xargs
 for inputfile in $(grep -E "@input@" "${file}.${ext}" | cut -d"@" -f3 | tr '\n' ' ')
 do
-	sed -i "/@input@$inputfile@/r $inputfile" "${file}.${ext}"
-	sed -i "/@input@$inputfile@/d"            "${file}.${ext}"
+	sed -i -e "/@input@$inputfile@/r $inputfile" -e "/@input@$inputfile@/d"  "${file}.${ext}"
 done
 
 # Compile with the right compiler
