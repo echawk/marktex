@@ -27,28 +27,29 @@ HELP="$USAGE
 	Print this message
 "
 OUTFMT="latex"
+ext="tex" ; highlightfmt="latexcolor"    ; lowdownfmt="latex"
 COLOR_SOURCE="N"
 for arg in "$@"
 do
 	case $arg in
 		-l|--latex)
-			OUTFMT="latex"
+			OUTFMT="latex"; ext="tex" ; highlightfmt="latexcolor"    ; lowdownfmt="latex"
 			shift
 			;;
 		-g|--groff)
-			OUTFMT="groff"
+			OUTFMT="groff"; ext="ms"  ; highlightfmt="groff_mm_color"; lowdownfmt="ms"
 			shift
 			;;
 		-w|--html)
-			OUTFMT="html"
+			OUTFMT="html"; ext="html"; highlightfmt="html"          ; lowdownfmt="html"
 			shift
 			;;
 		-m|--markdown)
-			OUTFMT="md"
+			OUTFMT="md"; ext="md"  ; highlightfmt="latexcolor"    ; lowdownfmt="latex"
 			shift
 			;;
 		-f|--github-flavored-markdown)
-			OUTFMT="gfm"
+			OUTFMT="gfm"; ext="md"  ; highlightfmt=""              ; lowdownfmt=""
 			shift
 			;;
 		-c|--color-source)
@@ -72,14 +73,6 @@ do
 done
 
 [ -z "$file" ] && echo "$USAGE" && echo "No file! Exiting..." && exit 1
-
-case $OUTFMT in
-	latex) ext="tex" ; highlightfmt="latexcolor"    ; lowdownfmt="latex";;
-	groff) ext="ms"  ; highlightfmt="groff_mm_color"; lowdownfmt="ms"   ;;
-	html)  ext="html"; highlightfmt="html"          ; lowdownfmt="html" ;;
-	md)    ext="md"  ; highlightfmt="latexcolor"    ; lowdownfmt="latex";;
-	gfm)   ext="md"  ; highlightfmt=""              ; lowdownfmt=""     ;;
-esac
 
 echo "ext: $ext"
 TEXCC=${TEXCC:-pdflatex}
