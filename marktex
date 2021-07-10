@@ -121,11 +121,8 @@ done
 
 # Create the code files; both in the output document format and as an independent file (if applicable)
 count=0
-CODEBLOCK=N # Global variable to determine whether or not we have a code block in the file; if Y, then \usepackage[dvipsnames]{xcolor}
 # Below is the regex pattern that denotes a code block
 codeptrn='```@C@?[a-z]*@?[a-z]*'
-
-grep -Eq "${codeptrn}" "${file}" && CODEBLOCK=Y
 
 grep -E "${codeptrn}" "${file}" | cut -d"@" -f4 | sort -u | xargs -P0 -I{} rm -vf "{}"
 
@@ -199,12 +196,9 @@ rm "copy-${file}"
 lowdown -s -T"${lowdownfmt}" --parse-math "detex-${file}" -o "${file}.${ext}";
 rm "detex-${file}"
 
-if [ "$CODEBLOCK" = Y ]
-then
-	case $OUTFMT in
-		latex) sed -i 's/age{xcolor}/age[dvipsnames]{xcolor}/' "${file}.${ext}";;
-	esac
-fi
+case $OUTFMT in
+	latex) sed -i 's/age{xcolor}/age[dvipsnames]{xcolor}/' "${file}.${ext}";;
+esac
 
 # Add in the preamble and the actually input the '@input' files
 #FIXME: LaTeX Only
