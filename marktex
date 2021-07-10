@@ -178,15 +178,6 @@ then
 	sed -i "${start},${end}s/.*/@pre@preamble-${file}.${ext}@/g" "copy-${file}"
 	echo "preamble-${file}.${ext}" >> "$GENFILES"
 fi
-# Now we are on to the @m tokens
-#count=0; sed -n "/@m/=" ${file} | while read LINE
-#do \
-#	sed -n "${LINE}p" ${file} > ${count}-math-${file}.tex
-#	sed -i -e "s=^[^@]*@m=@m=" -e "s/@m/$/g" ${count}-math-${file}.tex
-#	sed "${LINE}s/@m.*@m/@input{${count}-math-${file}.tex}/" copy-${file} > copy-${count}-${file}
-#	mv copy-${count}-${file} copy-${file}
-#	count=$((count + 1))
-#done
 
 # Get rid of duplicate lines
 uniq "copy-${file}" > "detex-${file}"
