@@ -123,17 +123,17 @@ done
 count=0
 CODEBLOCK=N # Global variable to determine whether or not we have a code block in the file; if Y, then \usepackage[dvipsnames]{xcolor}
 # Below is the regex pattern that denotes a code block
-ptrn='```@C@?[a-z]*@?[a-z]*'
+codeptrn='```@C@?[a-z]*@?[a-z]*'
 
-grep -Eq "${ptrn}" "${file}" && CODEBLOCK=Y
+grep -Eq "${codeptrn}" "${file}" && CODEBLOCK=Y
 
-grep -E "${ptrn}" "${file}" | cut -d"@" -f4 | sort -u | xargs -P0 -I{} rm -vf "{}"
+grep -E "${codeptrn}" "${file}" | cut -d"@" -f4 | sort -u | xargs -P0 -I{} rm -vf "{}"
 
-sed -E -n "/^${ptrn}/=" "${file}" | awk '{if (NR % 2 == 0) { print $1 } else { printf $1 "," }}' | while read -r LINE
+sed -E -n "/^${codeptrn}/=" "${file}" | awk '{if (NR % 2 == 0) { print $1 } else { printf $1 "," }}' | while read -r LINE
 do
 	lang=$(sed -n "${LINE%%,*}p" "${file}" | cut -d'@' -f3)
 	langfile="$(sed -n "${LINE%%,*}p" "${file}" | cut -d'@' -f4)"
-	genfiles=$(extract_text_between "$LINE" "${file}" "$count" '```@C@?[a-z]*@?[a-z]*' 'code' )
+	genfiles=$(extract_text_between "$LINE" "${file}" "$count" "${codeptrn}" 'code' )
 
 	[ -n "$langfile" ] && cat "${genfiles##*,}" >> "$langfile"
 	source-highlight --src-lang "${lang}" --out-format "${highlightfmt}" -o "${genfiles##*,}.${ext}" -i "${genfiles##*,}"
