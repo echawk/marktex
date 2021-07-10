@@ -136,8 +136,7 @@ do
 	source-highlight --src-lang "${lang}" --out-format "${highlightfmt}" -o "${genfiles##*,}.${ext}" -i "${genfiles##*,}"
 	rm "${genfiles##*,}"
 
-	sed "${LINE%%,*},${LINE##*,}s/.*/@input@${genfiles##*,}.${ext}@/g" "copy-${file}" > "copy-${count}-${file}"
-	mv "copy-${count}-${file}" "copy-${file}"
+	sed -i "${LINE%%,*},${LINE##*,}s/.*/@input@${genfiles##*,}.${ext}@/g" "copy-${file}"
 	echo "${genfiles##*,}.${ext}" >> "$GENFILES"
 	count=$((count + 1))
 done
@@ -159,15 +158,14 @@ do
 			#TODO: Add in HTML support
 			;;
 	esac
-	sed "${LINE}s/@c.*@c/\n@input@${cf}@\n/" "copy-${file}" > "copy-${count}-${file}"
-	mv "copy-${count}-${file}" "copy-${file}"
+	sed -i "${LINE}s/@c.*@c/\n@input@${cf}@\n/" "copy-${file}"
 	echo "$cf" >> "$GENFILES"
 	count=$((count + 1))
 done
 
 # Handle the Preamble block; this is only ran *once*
 # Create the Preamble file
-	#FIXME: LaTeX Only
+# FIXME: LaTeX Only
 if grep -E -q "^@p$" "${file}"
 then
 	PREAM=$(sed -n "/^@p$/=" "${file}" | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "," }}')
