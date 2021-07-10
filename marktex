@@ -177,13 +177,9 @@ then
 	echo "preamble-${file}.${ext}" >> "$GENFILES"
 fi
 
-# Get rid of duplicate lines
-uniq "copy-${file}" > "detex-${file}"
+# Get rid of duplicate lines and Comile the cleaned markdown with lowdown into the proper output format
+uniq "copy-${file}" | lowdown -s -T"${lowdownfmt}" --parse-math -o "${file}.${ext}";
 rm "copy-${file}"
-
-# Comile the cleaned markdown with lowdown into the proper output format
-lowdown -s -T"${lowdownfmt}" --parse-math "detex-${file}" -o "${file}.${ext}";
-rm "detex-${file}"
 
 case $OUTFMT in
 	latex) sed -i 's/age{xcolor}/age[dvipsnames]{xcolor}/' "${file}.${ext}";;
