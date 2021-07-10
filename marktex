@@ -115,7 +115,7 @@ cp "${file}" "copy-${file}"
 sed -n "/^@r$/=" "${file}" | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "," }}' | while read -r LINE
 do
 	mv "$(extract_text_between "$LINE" "${file}" "$count" "@r" 'raw' | cut -d',' -f1)" "copy-$file"
-	echo "${file}-${count}.${ext}" >> "$GENFILES"
+	echo "${file}-raw-${count}.${ext}" >> "$GENFILES"
 	count=$((count + 1))
 done
 
