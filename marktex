@@ -87,6 +87,7 @@ GENFILES="$(mktemp)"
 # $2 -> file
 # $3 -> count
 # $4 -> re pattern
+# $5 -> ident
 extract_text_between(){
 	# To get the start and end lines, I am using shell substring commands,
 	# rather than using cut, because the information that I want is already
@@ -96,12 +97,12 @@ extract_text_between(){
 	# ${1##,*} - ie : 13,47 -> 47
 	start=${1%%,*}
 	end=${1##*,}
-	cf="$2-$3.${ext}"
+	cf="$2-$5-$3.${ext}"
 	re="$4"
 	# extract out all of the text in between the start and end lines
 	sed -n "${start},${end}p" "$2" > "$cf"
 	# remove the marker for the raw blocks
-	sed -i "/${re}/d" "$cf"
+	sed -E -i "/${re}/d" "$cf"
 	# ${cf%%.*} - ie : file.name -> file
 	sed "${start},${end}s/.*/@input@${cf}@/g" "copy-$2" > "copy-${cf%%.*}"
 	# 'return' the copy file we just made
@@ -113,7 +114,7 @@ count=0
 cp "${file}" "copy-${file}"
 sed -n "/^@r$/=" "${file}" | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "," }}' | while read -r LINE
 do
-	mv "$(extract_text_between "$LINE" "${file}" "$count" "@r" | cut -d',' -f1)" "copy-$file"
+	mv "$(extract_text_between "$LINE" "${file}" "$count" "@r" 'raw' | cut -d',' -f1)" "copy-$file"
 	echo "${file}-${count}.${ext}" >> "$GENFILES"
 	count=$((count + 1))
 done
@@ -130,29 +131,17 @@ grep -E "${ptrn}" "${file}" | cut -d"@" -f4 | sort -u | xargs -P0 -I{} rm -vf "{
 
 sed -E -n "/^${ptrn}/=" "${file}" | awk '{if (NR % 2 == 0) { print $1 } else { printf $1 "," }}' | while read -r LINE
 do
-	start=${LINE%%,*}
-	end=${LINE##*,}
-	lang=$(sed -n "${start}p" "${file}" | cut -d'@' -f3)
-	langfile="$(sed -n "${start}p" "${file}" | cut -d'@' -f4)"
+	lang=$(sed -n "${LINE%%,*}p" "${file}" | cut -d'@' -f3)
+	langfile="$(sed -n "${LINE%%,*}p" "${file}" | cut -d'@' -f4)"
+	genfiles=$(extract_text_between "$LINE" "${file}" "$count" '```@C@?[a-z]*@?[a-z]*' 'code' )
 
-	tl="${count}-code-${file}.tmp.${lang}"
-	sed -n "${start},${end}p" "${file}" > "$tl"
-	sed -E -i "/$ptrn/d" "$tl"
-	[ -n "$langfile" ] && cat "$tl" >> "$langfile"
+	[ -n "$langfile" ] && cat "${genfiles##*,}" >> "$langfile"
+	source-highlight --src-lang "${lang}" --out-format "${highlightfmt}" -o "${genfiles##*,}.${ext}" -i "${genfiles##*,}"
+	rm "${genfiles##*,}"
 
-	#genfiles="$(extract_text_between "$LINE" "${file}" "$count" '```@C@?[a-z]*@?[a-z]*')"
-	#[ -n "$langfile" ] && cat "${genfiles##,*}" >> "$langfile"
-
-#	source-highlight --src-lang "${lang}" --out-format "${highlightfmt}" -o "${tl%%.*}.${ext}" -i "${genfiles##,*}"
-#	rm "${genfiles##,*}"
-
-	# ${tl%%.*} - ie : file.name -> file
-	source-highlight --src-lang "${lang}" --out-format "${highlightfmt}" -o "${tl%%.*}.${ext}" -i "$tl"
-	rm "$tl"
-
-	sed "${start},${end}s/.*/@input@${tl%%.*}.${ext}@/g" "copy-${file}" > "copy-${count}-${file}"
+	sed "${LINE%%,*},${LINE##*,}s/.*/@input@${genfiles##*,}.${ext}@/g" "copy-${file}" > "copy-${count}-${file}"
 	mv "copy-${count}-${file}" "copy-${file}"
-	echo "${tl%%.*}.${ext}" >> "$GENFILES"
+	echo "${genfiles##*,}.${ext}" >> "$GENFILES"
 	count=$((count + 1))
 done
 
@@ -207,7 +196,7 @@ uniq "copy-${file}" > "detex-${file}"
 rm "copy-${file}"
 
 # Comile the cleaned markdown with lowdown into the proper output format
-lowdown -s -T${lowdownfmt} --parse-math "detex-${file}" -o "${file}.${ext}";
+lowdown -s -T"${lowdownfmt}" --parse-math "detex-${file}" -o "${file}.${ext}";
 rm "detex-${file}"
 
 if [ "$CODEBLOCK" = Y ]
