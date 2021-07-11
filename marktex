@@ -66,8 +66,7 @@ do
 			shift
 			;;
 		*)
-			[ -z $* ] && break 2
-			shift
+			[ -z $* ] && break 2 || shift
 			;;
 	esac
 done
