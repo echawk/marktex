@@ -54,6 +54,7 @@ source-highlight | yes       | don't highlight source code
 - [ ] Update the README to better reflect the state of the project
 - [ ] Rename `marktex` to something more broad, since I don't want a hard dependency on LaTeX
 	- I'm thinking `lmdc` as a possible alternative, but I think the name should have a vowel
+- [ ] Test using `neatroff` instead of `groff` for roff output
 - [ ] Refactor `marktex` to be easier to follow; don't use as many compound variable names...
 	- [ ] fix all of the latex only commands in marktex to be output format agnostic
 	- [ ] extract the different parsers to their own scripts
