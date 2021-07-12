@@ -149,12 +149,8 @@ do
 	cf="${count}-cite-${file}.${ext}"
 	sed -n "${LINE}p" "${file}" > "$cf"
 	case $OUTFMT in
-		latex)
-			sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\\\\autocite{\1}/g" "$cf"
-			;;
-		groff)
-			sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\n.[\n\1\n.]\n/g" -e "s/;/\n/g" "$cf"
-			;;
+		latex) sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\\\\autocite{\1}/g" "$cf" ;;
+		groff) sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\n.[\n\1\n.]\n/g" -e "s/;/\n/g" "$cf" ;;
 		html)
 			#TODO: Add in HTML support
 			;;
