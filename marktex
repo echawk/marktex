@@ -106,6 +106,7 @@ extract_text_between(){
 # Handle the raw blocks
 count=0
 cp "${file}" "copy-${file}"
+grep -q "@r" "${file}" && {
 # The sed call here returns the line numbers that start with the specified regex. We also know that the
 # 'blocks' are containted between every two numbers, so we combine the numbers onto the same line using
 # the short awk program. This produces the proper input for the 'extract_text_between' procedure that
@@ -118,12 +119,13 @@ do
 	echo "${file}-raw-${count}.${ext}" >> "$GENFILES"
 	count=$((count + 1))
 done
-
+}
 # Create the code files; both in the output document format and as an independent file (if applicable)
 count=0
 # Below is the regex pattern that denotes a code block delimiter
 codeptrn='```@C@?[a-z]*@?[a-z]*'
 
+grep -qE "${codeptrn}" "${file}" && {
 # remove all source code files that will be generated from the document
 grep -E "${codeptrn}" "${file}" | cut -d"@" -f4 | sort -u | xargs -P0 -I{} rm -vf "{}"
 
@@ -141,9 +143,11 @@ do
 	echo "${genfiles##*,}.${ext}" >> "$GENFILES"
 	count=$((count + 1))
 done
+}
 
 # Create the citation files
 count=0
+grep -q "@c" "${file}" && {
 sed -n "/@c.*@c.*/=" "${file}" | while read -r LINE
 do
 	cf="${count}-cite-${file}.${ext}"
@@ -159,7 +163,7 @@ do
 	echo "$cf" >> "$GENFILES"
 	count=$((count + 1))
 done
-
+}
 # Handle the Preamble block; this is only ran *once*
 # Create the Preamble file
 # FIXME: LaTeX Only
