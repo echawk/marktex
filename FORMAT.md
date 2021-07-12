@@ -32,8 +32,8 @@ directly into the final document.
 There can only ever be **1** Preamble block in a document.
 This is to replicate LaTeX's style.
 
-Preamble blocks are structured the same way as LaTeX blocks,
-except they replace the '@l' with an '@p':
+Preamble blocks are structured the same way as raw blocks,
+except they replace the '@r' with an '@p':
 
 ```
 @p
