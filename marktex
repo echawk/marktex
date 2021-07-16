@@ -129,20 +129,27 @@ grep -qE "${codeptrn}" "${file}" && {
 # remove all source code files that will be generated from the document
 grep -E "${codeptrn}" "${file}" | cut -d"@" -f4 | sort -u | xargs -P0 -I{} rm -vf "{}"
 
-sed -E -n "/^${codeptrn}/=" "${file}" | awk '{if (NR % 2 == 0) { print $1 } else { printf $1 "," }}' | while read -r LINE
-do
-	lang=$(sed -n "${LINE%%,*}p" "${file}" | cut -d'@' -f3)
-	langfile="$(sed -n "${LINE%%,*}p" "${file}" | cut -d'@' -f4)"
-	genfiles=$(extract_text_between "$LINE" "${file}" "$count" "${codeptrn}" 'code' )
+[ $COLOR_SOURCE = Y ] && {
+	sed -E -n "/^${codeptrn}/=" "${file}" | awk '{if (NR % 2 == 0) { print $1 } else { printf $1 "," }}' | while read -r LINE
+	do
+		lang=$(sed -n "${LINE%%,*}p" "${file}" | cut -d'@' -f3)
+		langfile="$(sed -n "${LINE%%,*}p" "${file}" | cut -d'@' -f4)"
+		genfiles=$(extract_text_between "$LINE" "${file}" "$count" "${codeptrn}" 'code' )
 
-	[ -n "$langfile" ] && cat "${genfiles##*,}" >> "$langfile"
-	source-highlight --src-lang "${lang}" --out-format "${highlightfmt}" -o "${genfiles##*,}.${ext}" -i "${genfiles##*,}"
-	rm "${genfiles##*,}"
+		[ -n "$langfile" ] && cat "${genfiles##*,}" >> "$langfile"
+		source-highlight --src-lang "${lang}" --out-format "${highlightfmt}" -o "${genfiles##*,}.${ext}" -i "${genfiles##*,}"
+		rm "${genfiles##*,}"
 
-	sed -i "${LINE%%,*},${LINE##*,}s/.*/@input@${genfiles##*,}.${ext}@/g" "copy-${file}"
-	echo "${genfiles##*,}.${ext}" >> "$GENFILES"
-	count=$((count + 1))
-done
+		sed -i "${LINE%%,*},${LINE##*,}s/.*/@input@${genfiles##*,}.${ext}@/g" "copy-${file}"
+		echo "${genfiles##*,}.${ext}" >> "$GENFILES"
+		count=$((count + 1))
+	done
+	} || {
+		# if we aren't coloring code, then just transform the 'codeptrn' into '```'
+		a='```'
+		sed -E -i "s/$codeptrn/$a/" "copy-${file}"
+		unset a
+	}
 }
 
 # Create the citation files
