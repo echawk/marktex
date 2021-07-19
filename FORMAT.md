@@ -64,10 +64,10 @@ The quick brown fox jumped over the lazy hare
 
 To embed code in your markdown file, write it in this format:
 
-	```@C@lang@optionalfile
+	```>lang>optionalfile
 	def fun(n):
 		return n * n
-	```@C
+	```>
 
 Where `lang` is a language available from source-highlight, and
 `optionalfile` is an optional file for your code to be sent to.
