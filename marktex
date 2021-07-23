@@ -147,8 +147,7 @@ grep -E "${codeptrn}" "${file}" | cut -d"@" -f4 | sort -u | xargs -P0 -I{} rm -v
 	} || {
 		# if we aren't coloring code, then just transform the 'codeptrn' into '```'
 		a='```'
-		sed -E -i "s/$codeptrn/$a/" "copy-${file}"
-		unset a
+		sed -E -i -e "s/${codeptrn}/$a/" -e "s/${a}.*/$a/" "copy-${file}"
 	}
 }
 
