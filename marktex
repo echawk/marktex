@@ -111,7 +111,7 @@ grep -q "@r" "${file}" && {
 # 'blocks' are containted between every two numbers, so we combine the numbers onto the same line using
 # the short awk program. This produces the proper input for the 'extract_text_between' procedure that
 # is above
-sed -n "/^@r$/=" "${file}" | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "," }}' | while read -r LINE
+sed -n "/^@r$/=" "${file}" | paste -d"," - - | while read -r LINE
 do
 	# Here we are moving the freshly generated file to copy-$file so that our changes are saved
 	# iteratively
@@ -130,7 +130,7 @@ grep -qE "${codeptrn}" "${file}" && {
 grep -E "${codeptrn}" "${file}" | cut -d"@" -f4 | sort -u | xargs -P0 -I{} rm -vf "{}"
 
 [ $COLOR_SOURCE = Y ] && {
-	sed -E -n "/^${codeptrn}/=" "${file}" | awk '{if (NR % 2 == 0) { print $1 } else { printf $1 "," }}' | while read -r LINE
+	sed -E -n "/^${codeptrn}/=" "${file}" | paste -d"," - - | while read -r LINE
 	do
 		lang=$(sed -n "${LINE%%,*}p" "${file}" | cut -d'@' -f3)
 		langfile="$(sed -n "${LINE%%,*}p" "${file}" | cut -d'@' -f4)"
@@ -175,7 +175,7 @@ done
 # FIXME: LaTeX Only
 if grep -E -q "^@p$" "${file}"
 then
-	PREAM=$(sed -n "/^@p$/=" "${file}" | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "," }}')
+	PREAM=$(sed -n "/^@p$/=" "${file}" | paste -d"," - - )
 	start=${PREAM%%,*}
 	end=${PREAM##*,}
 	sed -n "${start},${end}p" "${file}" > "preamble-${file}.${ext}"
