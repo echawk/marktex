@@ -154,6 +154,7 @@ grep -E "${codeptrn}" "${file}" | cut -d">" -f3 | sort -u | xargs -P0 -I{} rm -v
 # Create the citation files
 count=0
 grep -q "@c" "${file}" && {
+HAS_CITATIONS=yes
 sed -n "/@c.*@c.*/=" "${file}" | while read -r LINE
 do
 	cf="${count}-cite-${file}.${ext}"
@@ -206,7 +207,16 @@ grep -E "@input@" "${file}.${ext}" | cut -d"@" -f3 | xargs -I{} sed -i -e "/@inp
 
 # Compile with the right compiler
 case $OUTFMT in
-	latex) ${TEXCC} "${file}.${ext}";;
+	latex) ${TEXCC} "${file}.${ext}"
+		[ -n $HAS_CITATIONS ] && {
+			if grep -q biber ${file}.${ext}
+			then
+				biber ${file}
+			else
+				bibtex ${file}
+			fi
+			${TEXCC} "${file}.${ext}"
+		};;
 	groff) refer < "${file}.${ext}" | preconv | eqn -Tpdf | tbl | pic | groff -mspdf -Tpdf > "${file}.pdf";;
 	html) ;;
 esac
