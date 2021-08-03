@@ -123,7 +123,7 @@ done
 # Create the code files; both in the output document format and as an independent file (if applicable)
 count=0
 # Below is the regex pattern that denotes a code block delimiter
-codeptrn='```@C@?[a-z]*@?[a-z]*'
+codeptrn='```>?[a-z]*>?[a-z]*'
 
 grep -qE "${codeptrn}" "${file}" && {
 # remove all source code files that will be generated from the document
@@ -132,8 +132,8 @@ grep -E "${codeptrn}" "${file}" | cut -d"@" -f4 | sort -u | xargs -P0 -I{} rm -v
 [ $COLOR_SOURCE = Y ] && {
 	sed -E -n "/^${codeptrn}/=" "${file}" | paste -d"," - - | while read -r LINE
 	do
-		lang=$(sed -n "${LINE%%,*}p" "${file}" | cut -d'@' -f3)
-		langfile="$(sed -n "${LINE%%,*}p" "${file}" | cut -d'@' -f4)"
+		lang=$(sed -n "${LINE%%,*}p" "${file}" | cut -d'>' -f2)
+		langfile="$(sed -n "${LINE%%,*}p" "${file}" | cut -d'>' -f3)"
 		genfiles=$(extract_text_between "$LINE" "${file}" "$count" "${codeptrn}" 'code' )
 
 		[ -n "$langfile" ] && cat "${genfiles##*,}" >> "$langfile"
