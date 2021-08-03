@@ -4,16 +4,16 @@ marktex is essentially a wrapper on top of `lowdown` that
 allows embedding arbitrary LaTeX commands  into a
 markdown document.
 
-To use LaTeX code, wrap your code in '@l' tags.
+To use LaTeX code, wrap your code in '@r' tags.
 Like so:
 
 ```
-@l
+@r
 \begin{center}
 Here is my \LaTeX code
 $ and math works \, a^2 + b^2 = c^2 $
 \end{center}
-@l
+@r
 ```
 
 ~~To use just the math mode of LaTeX, you can wrap your code in '@m' tags instead:~~
@@ -25,8 +25,9 @@ Update: I've come to find out about lowdown's `--parse-math` flag, so that is us
 
 
 Most things will typically *just work*.
-Currently the only exception to this is if you need external packages,
-as I have not yet implemented support for changing the preamble of the document.
+~~Currently the only exception to this is if you need external packages,
+as I have not yet implemented support for changing the preamble of the document.~~
+You now can include external packages by wraping your 'usepackage' calls in '@p' tags!
 
 And all you need to do is copy the Makefile in this directory
 into your note directory, and you're good to go.
@@ -59,8 +60,9 @@ source-highlight | yes       | don't highlight source code
 	- [ ] fix all of the latex only commands in marktex to be output format agnostic
 	- [ ] extract the different parsers to their own scripts
 		- **NOTE:** Right now I'm am putting this on hold; I'll start work on this once marktex is completed
-- [ ] Consider changing the extension to represent that this isn't typical markdown; I'm thinking `.lmd`
+- [x] Consider changing the extension to represent that this isn't typical markdown; I'm thinking `.lmd`
 	- I think this extension is appropriate considering marktex's use case and origin: using LaTeX to extend markdown and literate programming
+	- perform a runtime identification of the file's extension?
 - [x] Add in support for the preamble
 	- The preamble is tested well in the 'marktex' script, however it has not been throughly tested with the makefile
 - [ ] Add in support to change the document class (ideally in the preamble section)
@@ -68,6 +70,7 @@ source-highlight | yes       | don't highlight source code
 - [x] Add in support for citation commands
 	- Using miktex, there seems to be an issue with biber
 		- But the infrastructure is in place for testing.
+	- bibtex is confirmed to work under texlive
 	- Confirmed to work with `refer`/`groff`
 - [x] Add in support for highlighting source code
 	- I'd like to be able to use marktex for literate programming
@@ -88,6 +91,4 @@ source-highlight | yes       | don't highlight source code
 	- @l tokens to designate latex context? sed -n gets line numbers
 	- Below is a proof of concept
 		-  `sed -n "/^@l$/=" l.md | awk '{if (NR % 2 == 0) {print $1} else {printf $1 "\t" }}' | while read LINE; do start=$(echo $LINE | cut -d' ' -f1); end=$(echo $LINE | cut -d' ' -f2); sed -n "${start},${end}p" l.md; sed "${start},${end}s/.*/.latex/g" l.md; sed "s=\.latex=\.l" l.md ; done`
-
-
 
