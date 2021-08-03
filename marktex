@@ -208,12 +208,12 @@ grep -E "@input@" "${file}.${ext}" | cut -d"@" -f3 | xargs -I{} sed -i -e "/@inp
 # Compile with the right compiler
 case $OUTFMT in
 	latex) ${TEXCC} "${file}.${ext}"
-		[ -n $HAS_CITATIONS ] && {
-			if grep -q biber ${file}.${ext}
+		[ -n "$HAS_CITATIONS" ] && {
+			if grep -q biber "${file}.${ext}"
 			then
-				biber ${file}
+				biber "${file}"
 			else
-				bibtex ${file}
+				bibtex "${file}"
 			fi
 			${TEXCC} "${file}.${ext}"
 		};;
