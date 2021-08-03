@@ -127,7 +127,7 @@ codeptrn='```>[a-z]*>?[a-z]*'
 
 grep -qE "${codeptrn}" "${file}" && {
 # remove all source code files that will be generated from the document
-grep -E "${codeptrn}" "${file}" | cut -d"@" -f4 | sort -u | xargs -P0 -I{} rm -vf "{}"
+grep -E "${codeptrn}" "${file}" | cut -d">" -f3 | sort -u | xargs -P0 -I{} rm -vf "{}"
 
 [ $COLOR_SOURCE = Y ] && {
 	sed -E -n "/^${codeptrn}/=" "${file}" | paste -d"," - - | while read -r LINE
