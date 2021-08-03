@@ -123,7 +123,7 @@ done
 # Create the code files; both in the output document format and as an independent file (if applicable)
 count=0
 # Below is the regex pattern that denotes a code block delimiter
-codeptrn='```>?[a-z]*>?[a-z]*'
+codeptrn='```>[a-z]*>?[a-z]*'
 
 grep -qE "${codeptrn}" "${file}" && {
 # remove all source code files that will be generated from the document
