@@ -216,7 +216,8 @@ case $OUTFMT in
 				bibtex "${file}"
 			fi
 			${TEXCC} "${file}.${ext}"
-		};;
+		}
+		latexmk -c -f "${file}.${ext}";;
 	groff) refer < "${file}.${ext}" | preconv | eqn -Tpdf | tbl | pic | groff -mspdf -Tpdf > "${file}.pdf";;
 	html) ;;
 esac
