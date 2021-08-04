@@ -77,11 +77,11 @@ GENFILES="$(mktemp)"
 
 # extract_text_between
 #ex:
-# $1 -> 13,43
-# $2 -> file
-# $3 -> count
-# $4 -> re pattern
-# $5 -> ident
+# $1 -> 13,43      - start and end line numbers
+# $2 -> file       - the file to modify
+# $3 -> count      - the current count (in reference to each loop)
+# $4 -> re pattern - the regex pattern to remove from the extracted text
+# $5 -> identifier - 'raw', 'code', etc.
 extract_text_between(){
 	# To get the start and end lines, I am using shell substring commands,
 	# rather than using cut, because the information that I want is already
@@ -109,8 +109,7 @@ cp "${file}" "copy-${file}"
 grep -q "@r" "${file}" && {
 # The sed call here returns the line numbers that start with the specified regex. We also know that the
 # 'blocks' are containted between every two numbers, so we combine the numbers onto the same line using
-# the short awk program. This produces the proper input for the 'extract_text_between' procedure that
-# is above
+# paste. This produces the proper input for the 'extract_text_between' procedure that is above
 sed -n "/^@r$/=" "${file}" | paste -d"," - - | while read -r LINE
 do
 	# Here we are moving the freshly generated file to copy-$file so that our changes are saved
