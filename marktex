@@ -195,8 +195,7 @@ esac
 if grep -q "@pre@" "${file}.${ext}"
 then
 	PREAMINC=$(grep "@pre@" "${file}.${ext}" | sed -E "s=@pre@(.*)@=input{\1}=")
-	sed -i -E  "s=^(\\\\documentclass\[[a-zA-Z0-9,]*\]\{[a-zA-Z]*})$=\1\n\n\\\\$PREAMINC=" "${file}.${ext}"
-	sed -i -E "s=^@pre@.*$==" "${file}.${ext}"
+	sed -i -E -e "s=^(\\\\documentclass\[[a-zA-Z0-9,]*\]\{[a-zA-Z]*})$=\1\n\n\\\\$PREAMINC=" -e "/^@pre@.*$/d" "${file}.${ext}"
 fi
 
 grep -E "@input@" "${file}.${ext}" | cut -d"@" -f3 | xargs -I{} sed -i -e "/@input@{}@/r {}" -e "/@input@{}@/d"  "${file}.${ext}"
