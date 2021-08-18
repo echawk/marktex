@@ -91,7 +91,7 @@ extract_text_between(){
 	# ${1##,*} - ie : 13,47 -> 47
 	start=${1%%,*}
 	end=${1##*,}
-	cf="$2-$5-$3.${ext}"
+	cf="$2-$5-$3.$ext"
 	re="$4"
 	# extract out all of the text in between the start and end lines
 	sed -n "${start},${end}p" "$2" > "$cf"
@@ -105,17 +105,17 @@ extract_text_between(){
 
 # Handle the raw blocks
 count=0
-cp "${file}" "copy-${file}"
-grep -q "@r" "${file}" && {
+cp "$file" "copy-$file"
+grep -q "@r" "$file" && {
 # The sed call here returns the line numbers that start with the specified regex. We also know that the
 # 'blocks' are containted between every two numbers, so we combine the numbers onto the same line using
 # paste. This produces the proper input for the 'extract_text_between' procedure that is above
-sed -n "/^@r$/=" "${file}" | paste -d"," - - | while read -r LINE
+sed -n "/^@r$/=" "$file" | paste -d"," - - | while read -r LINE
 do
 	# Here we are moving the freshly generated file to copy-$file so that our changes are saved
 	# iteratively
-	mv "$(extract_text_between "$LINE" "${file}" "$count" "@r" 'raw' | cut -d',' -f1)" "copy-$file"
-	echo "${file}-raw-${count}.${ext}" >> "$GENFILES"
+	mv "$(extract_text_between "$LINE" "$file" "$count" "@r" 'raw' | cut -d',' -f1)" "copy-$file"
+	echo "$file-raw-$count.$ext" >> "$GENFILES"
 	count=$((count + 1))
 done
 }
@@ -149,12 +149,12 @@ grep -E "${codeptrn}" "$file" | cut -d">" -f3 | sort -u | xargs -P0 -I{} rm -vf 
 
 # Create the citation files
 count=0
-grep -q "@c" "${file}" && {
+grep -q "@c" "$file" && {
 HAS_CITATIONS=yes
-sed -n "/@c.*@c.*/=" "${file}" | while read -r LINE
+sed -n "/@c.*@c.*/=" "$file" | while read -r LINE
 do
-	cf="${count}-cite-${file}.${ext}"
-	sed -n "${LINE}p" "${file}" > "$cf"
+	cf="$count-cite-$file.$ext"
+	sed -n "${LINE}p" "$file" > "$cf"
 	case $OUTFMT in
 		latex) sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\\\\autocite{\1}/g" "$cf" ;;
 		groff) sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\n.[\n\1\n.]\n/g" -e "s/;/\n/g" "$cf" ;;
@@ -162,7 +162,7 @@ do
 			#TODO: Add in HTML support
 			;;
 	esac
-	sed -i "${LINE}s/@c.*@c/\n@input@${cf}@\n/" "copy-${file}"
+	sed -i "${LINE}s/@c.*@c/\n@input@${cf}@\n/" "copy-$file"
 	echo "$cf" >> "$GENFILES"
 	count=$((count + 1))
 done
@@ -170,50 +170,50 @@ done
 # Handle the Preamble block; this is only ran *once*
 # Create the Preamble file
 # FIXME: LaTeX Only
-if grep -E -q "^@p$" "${file}"
+if grep -E -q "^@p$" "$file"
 then
-	PREAM=$(sed -n "/^@p$/=" "${file}" | paste -d"," - - )
+	PREAM=$(sed -n "/^@p$/=" "$file" | paste -d"," - - )
 	start=${PREAM%%,*}
 	end=${PREAM##*,}
-	sed -n "${start},${end}p" "${file}" > "preamble-${file}.${ext}"
-	sed -i "/@p/d" "preamble-${file}.${ext}"
-	sed -i "${start},${end}s/.*/@pre@preamble-${file}.${ext}@/g" "copy-${file}"
-	echo "preamble-${file}.${ext}" >> "$GENFILES"
+	sed -n "${start},${end}p" "$file" > "preamble-$file.$ext"
+	sed -i "/@p/d" "preamble-$file.$ext"
+	sed -i "${start},${end}s/.*/@pre@preamble-$file.$ext@/g" "copy-$file"
+	echo "preamble-$file.$ext" >> "$GENFILES"
 fi
 
 # Get rid of duplicate lines and Comile the cleaned markdown with lowdown into the proper output format
-uniq "copy-${file}" | lowdown -s -T"${lowdownfmt}" --parse-math -o "${file}.${ext}";
-rm "copy-${file}"
+uniq "copy-$file" | lowdown -s -T"$lowdownfmt" --parse-math -o "$file.$ext";
+rm "copy-$file"
 
 case $OUTFMT in
-	latex) sed -i 's/age{xcolor}/age[dvipsnames]{xcolor}/' "${file}.${ext}";;
+	latex) sed -i 's/age{xcolor}/age[dvipsnames]{xcolor}/' "$file.$ext";;
 esac
 
 # Add in the preamble and the actually input the '@input' files
 #FIXME: LaTeX Only
 #FIXME: Refactor - this is ugly
-if grep -q "@pre@" "${file}.${ext}"
+if grep -q "@pre@" "$file.$ext"
 then
-	PREAMINC=$(grep "@pre@" "${file}.${ext}" | sed -E "s=@pre@(.*)@=input{\1}=")
-	sed -i -E -e "s=^(\\\\documentclass\[[a-zA-Z0-9,]*\]\{[a-zA-Z]*})$=\1\n\n\\\\$PREAMINC=" -e "/^@pre@.*$/d" "${file}.${ext}"
+	PREAMINC=$(grep "@pre@" "$file.$ext" | sed -E "s=@pre@(.*)@=input{\1}=")
+	sed -i -E -e "s=^(\\\\documentclass\[[a-zA-Z0-9,]*\]\{[a-zA-Z]*})$=\1\n\n\\\\$PREAMINC=" -e "/^@pre@.*$/d" "$file.$ext"
 fi
 
-grep -E "@input@" "${file}.${ext}" | cut -d"@" -f3 | xargs -I{} sed -i -e "/@input@{}@/r {}" -e "/@input@{}@/d"  "${file}.${ext}"
+grep -E "@input@" "$file.$ext" | cut -d"@" -f3 | xargs -I{} sed -i -e "/@input@{}@/r {}" -e "/@input@{}@/d"  "$file.$ext"
 
 # Compile with the right compiler
 case $OUTFMT in
-	latex) ${TEXCC} "${file}.${ext}"
+	latex) ${TEXCC} "$file.$ext"
 		[ -n "$HAS_CITATIONS" ] && {
-			if grep -q biber "${file}.${ext}"
+			if grep -q biber "$file.$ext"
 			then
-				biber "${file}"
+				biber "$file"
 			else
-				bibtex "${file}"
+				bibtex "$file"
 			fi
-			${TEXCC} "${file}.${ext}"
+			${TEXCC} "$file.$ext"
 		}
-		latexmk -c -f "${file}.${ext}";;
-	groff) refer < "${file}.${ext}" | preconv | eqn -Tpdf | tbl | pic | groff -mspdf -Tpdf > "${file}.pdf";;
+		latexmk -c -f "$file.$ext";;
+	groff) refer < "$file.$ext" | preconv | eqn -Tpdf | tbl | pic | groff -mspdf -Tpdf > "$file.pdf";;
 	html) ;;
 esac
 
