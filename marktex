@@ -125,8 +125,8 @@ count=0
 codeptrn='```>[a-z]*>?[a-z]*'
 
 grep -qE "${codeptrn}" "$file" && {
-# remove all source code files that will be generated from the document
-grep -E "${codeptrn}" "$file" | cut -d">" -f3 | sort -u | xargs -P0 -I{} rm -vf "{}"
+	# we remove the files that are going to be generated so we fit the spec
+	grep -E "${codeptrn}" "$file" | cut -d">" -f3 | sort -u | xargs -P0 -I{} rm -vf "{}"
 	sed -E -n "/^${codeptrn}/=" "$file" | paste -d"," - - | while read -r LINE
 	do
 		start=${LINE%%,*}
@@ -153,20 +153,20 @@ grep -E "${codeptrn}" "$file" | cut -d">" -f3 | sort -u | xargs -P0 -I{} rm -vf 
 # Create the citation files
 count=0
 grep -q "@c" "$file" && {
-HAS_CITATIONS=yes
-sed -n "/@c.*@c.*/=" "$file" | while read -r LINE
-do
-	cf="$count-cite-$file.$ext"
-	sed -n "${LINE}p" "$file" > "$cf"
-	case $OUTFMT in
-		latex) sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\\\\autocite{\1}/g" "$cf" ;;
-		groff) sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\n.[\n\1\n.]\n/g" -e "s/;/\n/g" "$cf" ;;
-		html) ;; #TODO: Add in HTML support
-	esac
-	sed -i "${LINE}s/@c.*@c/\n@input@${cf}@\n/" "copy-$file"
-	echo "$cf" >> "$GENFILES"
-	count=$((count + 1))
-done
+	HAS_CITATIONS=yes
+	sed -n "/@c.*@c.*/=" "$file" | while read -r LINE
+	do
+		cf="$count-cite-$file.$ext"
+		sed -n "${LINE}p" "$file" > "$cf"
+		case $OUTFMT in
+			latex) sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\\\\autocite{\1}/g" "$cf" ;;
+			groff) sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\n.[\n\1\n.]\n/g" -e "s/;/\n/g" "$cf" ;;
+			html) ;; #TODO: Add in HTML support
+		esac
+		sed -i "${LINE}s/@c.*@c/\n@input@${cf}@\n/" "copy-$file"
+		echo "$cf" >> "$GENFILES"
+		count=$((count + 1))
+	done
 }
 # Handle the Preamble block; this is only ran *once*
 # Create the Preamble file
