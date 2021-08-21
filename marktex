@@ -60,7 +60,7 @@ do
 		*)
 			# Below is a fix for kornshell compatible shells. If there is nothing left in the
 			# arugment list to shift, then we break, otherwise, shift
-			[ -z $* ] && break 2 || shift
+			[ -z "$*" ] && break || shift
 			;;
 	esac
 done
