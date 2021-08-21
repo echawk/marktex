@@ -50,7 +50,7 @@ do
 		-h|--help)
 			shift
 			printf "%s" "$HELP"
-			exit 1
+			exit 0
 			;;
 		-i|--input)
 			shift
