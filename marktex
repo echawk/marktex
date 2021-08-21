@@ -213,7 +213,7 @@ case $OUTFMT in
 			${TEXCC} "$file.$ext"
 		}
 		latexmk -c -f "$file.$ext";;
-	groff) refer < "$file.$ext" | preconv | eqn -Tpdf | tbl | pic | groff -mspdf -Tpdf > "$file.pdf";;
+	groff) which grap && gc=grap; gc=${gc:-tee}; refer < "$file.$ext" | preconv | eqn -Tpdf | tbl | $gc | pic | groff -mspdf -Tpdf > "$file.pdf";;
 	html) ;;
 esac
 
