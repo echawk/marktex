@@ -136,12 +136,12 @@ grep -E "${codeptrn}" "$file" | cut -d">" -f3 | sort -u | xargs -P0 -I{} rm -vf 
 		[ $COLOR_SOURCE = Y ] && {
 			source-highlight --src-lang "$lang" --out-format "$highlightfmt" -o "${genfiles##*,}.$ext" -i "${genfiles##*,}"
 			sed -i "${LINE%%,*},${LINE##*,}s/.*/@input@${genfiles##*,}.$ext@/g" "copy-$file"
+			echo "${genfiles##*,}.$ext" >> "$GENFILES"
 		} || {
 			# if we aren't coloring code, then just transform the 'codeptrn' into '```'
 			a='```'
 			sed -E -i -e "s/$codeptrn/$a/" -e "s/$a.*/$a/" "copy-$file"
 		}
-		[ -e "${genfiles##*,}.$ext" ] && echo "${genfiles##*,}.$ext" >> "$GENFILES"
 		count=$((count + 1))
 		rm "${genfiles##*,}"
 	done
@@ -158,9 +158,7 @@ do
 	case $OUTFMT in
 		latex) sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\\\\autocite{\1}/g" "$cf" ;;
 		groff) sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\n.[\n\1\n.]\n/g" -e "s/;/\n/g" "$cf" ;;
-		html)
-			#TODO: Add in HTML support
-			;;
+		html) ;; #TODO: Add in HTML support
 	esac
 	sed -i "${LINE}s/@c.*@c/\n@input@${cf}@\n/" "copy-$file"
 	echo "$cf" >> "$GENFILES"
@@ -204,12 +202,11 @@ grep -E "@input@" "$file.$ext" | cut -d"@" -f3 | xargs -I{} sed -i -e "/@input@{
 case $OUTFMT in
 	latex) ${TEXCC} "$file.$ext"
 		[ -n "$HAS_CITATIONS" ] && {
-			if grep -q biber "$file.$ext"
-			then
+			grep -q biber "$file.$ext" && {
 				biber "$file"
-			else
+			} || {
 				bibtex "$file"
-			fi
+			}
 			${TEXCC} "$file.$ext"
 		}
 		latexmk -c -f "$file.$ext";;
