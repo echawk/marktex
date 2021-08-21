@@ -134,18 +134,19 @@ grep -E "${codeptrn}" "$file" | cut -d">" -f3 | sort -u | xargs -P0 -I{} rm -vf 
 		lang=$(sed -n "${start}p" "$file" | cut -d'>' -f2)
 		langfile="$(sed -n "${start}p" "$file" | cut -d'>' -f3)"
 		genfiles=$(extract_text_between "$LINE" "$file" "$count" "$codeptrn" 'code' )
-		[ -n "$langfile" ] && cat "${genfiles##*,}" >> "$langfile"
+		file_with_extracted_text="${genfiles##*,}"
+		[ -n "$langfile" ] && cat "$file_with_extracted_text" >> "$langfile"
 		[ $COLOR_SOURCE = Y ] && {
-			source-highlight --src-lang "$lang" --out-format "$highlightfmt" -o "${genfiles##*,}.$ext" -i "${genfiles##*,}"
-			sed -i "${start},${end}s/.*/@input@${genfiles##*,}.$ext@/g" "copy-$file"
-			echo "${genfiles##*,}.$ext" >> "$GENFILES"
+			source-highlight --src-lang "$lang" --out-format "$highlightfmt" -o "$file_with_extracted_text.$ext" -i "$file_with_extracted_text"
+			sed -i "${start},${end}s/.*/@input@$file_with_extracted_text.$ext@/g" "copy-$file"
+			echo "$file_with_extracted_text.$ext" >> "$GENFILES"
 		} || {
 			# if we aren't coloring code, then just transform the 'codeptrn' into '```'
 			a='```'
 			sed -E -i -e "s/$codeptrn/$a/" -e "s/$a.*/$a/" "copy-$file"
 		}
 		count=$((count + 1))
-		rm "${genfiles##*,}"
+		rm "$file_with_extracted_text"
 	done
 }
 
