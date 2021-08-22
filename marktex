@@ -122,18 +122,18 @@ done
 # Create the code files; both in the output document format and as an independent file (if applicable)
 count=0
 # Below is the regex pattern that denotes a code block delimiter
-codeptrn='```>[a-z]*>?[a-z]*'
+RE_CODE='```>[a-z]*>?[a-z]*'
 
-grep -qE "${codeptrn}" "$file" && {
+grep -qE "${RE_CODE}" "$file" && {
 	# we remove the files that are going to be generated so we fit the spec
-	grep -E "${codeptrn}" "$file" | cut -d">" -f3 | sort -u | xargs -P0 -I{} rm -vf "{}"
-	sed -E -n "/^${codeptrn}/=" "$file" | paste -d"," - - | while read -r LINE
+	grep -E "${RE_CODE}" "$file" | cut -d">" -f3 | sort -u | xargs -P0 -I{} rm -vf "{}"
+	sed -E -n "/^${RE_CODE}/=" "$file" | paste -d"," - - | while read -r LINE
 	do
 		start=${LINE%%,*}
 		end=${LINE##*,}
 		lang=$(sed -n "${start}p" "$file" | cut -d'>' -f2)
 		langfile="$(sed -n "${start}p" "$file" | cut -d'>' -f3)"
-		genfiles=$(extract_text_between "$LINE" "$file" "$count" "$codeptrn" 'code' )
+		genfiles=$(extract_text_between "$LINE" "$file" "$count" "$RE_CODE" 'code' )
 		file_with_extracted_text="${genfiles##*,}"
 		[ -n "$langfile" ] && cat "$file_with_extracted_text" >> "$langfile"
 		[ $COLOR_SOURCE = Y ] && {
@@ -141,9 +141,9 @@ grep -qE "${codeptrn}" "$file" && {
 			sed -i "${start},${end}s/.*/@input@$file_with_extracted_text.$ext@/g" "copy-$file"
 			echo "$file_with_extracted_text.$ext" >> "$GENFILES"
 		} || {
-			# if we aren't coloring code, then just transform the 'codeptrn' into '```'
+			# if we aren't coloring code, then just transform the 'RE_CODE' into '```'
 			a='```'
-			sed -E -i -e "s/$codeptrn/$a/" -e "s/$a.*/$a/" "copy-$file"
+			sed -E -i -e "s/$RE_CODE/$a/" -e "s/$a.*/$a/" "copy-$file"
 		}
 		count=$((count + 1))
 		rm "$file_with_extracted_text"
@@ -152,9 +152,10 @@ grep -qE "${codeptrn}" "$file" && {
 
 # Create the citation files
 count=0
-grep -q "@c" "$file" && {
+RE_CITE='@c.*@c'
+grep -qE "$RE_CITE.*" "$file" && {
 	HAS_CITATIONS=yes
-	sed -n "/@c.*@c.*/=" "$file" | while read -r LINE
+	sed -n "/$RE_CITE/=" "$file" | while read -r LINE
 	do
 		cf="$count-cite-$file.$ext"
 		sed -n "${LINE}p" "$file" > "$cf"
@@ -163,7 +164,7 @@ grep -q "@c" "$file" && {
 			groff) sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\n.[\n\1\n.]\n/g" -e "s/;/\n/g" "$cf" ;;
 			html) ;; #TODO: Add in HTML support
 		esac
-		sed -i "${LINE}s/@c.*@c/\n@input@${cf}@\n/" "copy-$file"
+		sed -i "${LINE}s/$RE_CITE/\n@input@${cf}@\n/" "copy-$file"
 		echo "$cf" >> "$GENFILES"
 		count=$((count + 1))
 	done
@@ -213,7 +214,7 @@ case $OUTFMT in
 			${TEXCC} "$file.$ext"
 		}
 		latexmk -c -f "$file.$ext";;
-	groff) which grap && gc=grap; gc=${gc:-tee}; refer < "$file.$ext" | preconv | eqn -Tpdf | tbl | $gc | pic | groff -mspdf -Tpdf > "$file.pdf";;
+	groff) gc=tee; which grap && gc=grap; refer < "$file.$ext" | preconv | eqn -Tpdf | tbl | $gc | pic | groff -mspdf -Tpdf > "$file.pdf";;
 	html) ;;
 esac
 
