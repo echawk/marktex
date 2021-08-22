@@ -79,7 +79,7 @@ GENFILES="$(mktemp)"
 #ex:
 # $1 -> 13,43      - start and end line numbers
 # $2 -> file       - the file to modify
-# $3 -> count      - the current count (in reference to each loop)
+# $3 -> i          - the current i (in reference to each loop)
 # $4 -> re pattern - the regex pattern to remove from the extracted text
 # $5 -> identifier - 'raw', 'code', etc.
 extract_text_between(){
@@ -103,7 +103,7 @@ extract_text_between(){
 	printf "%s" "copy-${cf%%.*},${cf}"
 }
 
-count=0
+i=0
 RE_RAW="^@r$"
 cp "$file" "copy-$file"
 grep -qE "$RE_RAW" "$file" && {
@@ -114,14 +114,14 @@ sed -n "/$RE_RAW/=" "$file" | paste -d"," - - | while read -r LINE
 do
 	# Here we are moving the freshly generated file to copy-$file so that our changes are saved
 	# iteratively
-	mv "$(extract_text_between "$LINE" "$file" "$count" "@r" 'raw' | cut -d',' -f1)" "copy-$file"
-	echo "$file-raw-$count.$ext" >> "$GENFILES"
-	count=$((count + 1))
+	mv "$(extract_text_between "$LINE" "$file" "$i" "@r" 'raw' | cut -d',' -f1)" "copy-$file"
+	echo "$file-raw-$i.$ext" >> "$GENFILES"
+	i=$((i + 1))
 done
 }
 
 # Create the code files; both in the output document format and as an independent file (if applicable)
-count=0
+i=0
 RE_CODE='```>[a-z]*>?[a-z]*'
 grep -qE "${RE_CODE}" "$file" && {
 	# we remove the files that are going to be generated so we fit the spec
@@ -132,7 +132,7 @@ grep -qE "${RE_CODE}" "$file" && {
 		end=${LINE##*,}
 		lang=$(sed -n "${start}p" "$file" | cut -d'>' -f2)
 		langfile="$(sed -n "${start}p" "$file" | cut -d'>' -f3)"
-		genfiles=$(extract_text_between "$LINE" "$file" "$count" "$RE_CODE" 'code' )
+		genfiles=$(extract_text_between "$LINE" "$file" "$i" "$RE_CODE" 'code' )
 		file_with_extracted_text="${genfiles##*,}"
 		[ -n "$langfile" ] && cat "$file_with_extracted_text" >> "$langfile"
 		[ $COLOR_SOURCE = Y ] && {
@@ -144,19 +144,19 @@ grep -qE "${RE_CODE}" "$file" && {
 			a='```'
 			sed -E -i "s/$RE_CODE/$a/;s/$a.*/$a/" "copy-$file"
 		}
-		count=$((count + 1))
+		i=$((i + 1))
 		rm "$file_with_extracted_text"
 		lang="" langfile=""
 	done
 }
 
-count=0
+i=0
 RE_CITE='@c.*@c'
 grep -qE "$RE_CITE.*" "$file" && {
 	HAS_CITATIONS=yes
 	sed -n "/$RE_CITE/=" "$file" | while read -r LINE
 	do
-		cf="$count-cite-$file.$ext"
+		cf="$i-cite-$file.$ext"
 		sed -n "${LINE}p" "$file" > "$cf"
 		case $OUTFMT in
 			latex) sed -i -E -e "s=^[^@]*@c=@c=;s/@c(.*)@c/\\\\autocite{\1}/g" "$cf" ;;
@@ -165,7 +165,7 @@ grep -qE "$RE_CITE.*" "$file" && {
 		esac
 		sed -i "${LINE}s/$RE_CITE/\n@input@${cf}@\n/" "copy-$file"
 		echo "$cf" >> "$GENFILES"
-		count=$((count + 1))
+		i=$((i + 1))
 	done
 }
 
