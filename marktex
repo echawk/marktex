@@ -103,14 +103,14 @@ extract_text_between(){
 	printf "%s" "copy-${cf%%.*},${cf}"
 }
 
-# Handle the raw blocks
 count=0
+RE_RAW="^@r$"
 cp "$file" "copy-$file"
-grep -q "@r" "$file" && {
+grep -qE "$RE_RAW" "$file" && {
 # The sed call here returns the line numbers that start with the specified regex. We also know that the
 # 'blocks' are containted between every two numbers, so we combine the numbers onto the same line using
 # paste. This produces the proper input for the 'extract_text_between' procedure that is above
-sed -n "/^@r$/=" "$file" | paste -d"," - - | while read -r LINE
+sed -n "/$RE_RAW/=" "$file" | paste -d"," - - | while read -r LINE
 do
 	# Here we are moving the freshly generated file to copy-$file so that our changes are saved
 	# iteratively
@@ -119,11 +119,10 @@ do
 	count=$((count + 1))
 done
 }
+
 # Create the code files; both in the output document format and as an independent file (if applicable)
 count=0
-# Below is the regex pattern that denotes a code block delimiter
 RE_CODE='```>[a-z]*>?[a-z]*'
-
 grep -qE "${RE_CODE}" "$file" && {
 	# we remove the files that are going to be generated so we fit the spec
 	grep -E "${RE_CODE}" "$file" | cut -d">" -f3 | sort -u | xargs -P0 -I{} rm -vf "{}"
@@ -151,7 +150,6 @@ grep -qE "${RE_CODE}" "$file" && {
 	done
 }
 
-# Create the citation files
 count=0
 RE_CITE='@c.*@c'
 grep -qE "$RE_CITE.*" "$file" && {
@@ -161,8 +159,8 @@ grep -qE "$RE_CITE.*" "$file" && {
 		cf="$count-cite-$file.$ext"
 		sed -n "${LINE}p" "$file" > "$cf"
 		case $OUTFMT in
-			latex) sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\\\\autocite{\1}/g" "$cf" ;;
-			groff) sed -i -E -e "s=^[^@]*@c=@c=" -e "s/@c(.*)@c/\n.[\n\1\n.]\n/g" -e "s/;/\n/g" "$cf" ;;
+			latex) sed -i -E -e "s=^[^@]*@c=@c=;s/@c(.*)@c/\\\\autocite{\1}/g" "$cf" ;;
+			groff) sed -i -E -e "s=^[^@]*@c=@c=;s/@c(.*)@c/\n.[\n\1\n.]\n/g" -e "s/;/\n/g" "$cf" ;;
 			html) ;; #TODO: Add in HTML support
 		esac
 		sed -i "${LINE}s/$RE_CITE/\n@input@${cf}@\n/" "copy-$file"
@@ -170,8 +168,8 @@ grep -qE "$RE_CITE.*" "$file" && {
 		count=$((count + 1))
 	done
 }
+
 # Handle the Preamble block; this is only ran *once*
-# Create the Preamble file
 # FIXME: LaTeX Only
 if grep -E -q "^@p$" "$file"
 then
