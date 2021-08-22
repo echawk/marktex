@@ -83,14 +83,8 @@ GENFILES="$(mktemp)"
 # $4 -> re pattern - the regex pattern to remove from the extracted text
 # $5 -> identifier - 'raw', 'code', etc.
 extract_text_between(){
-	# To get the start and end lines, I am using shell substring commands,
-	# rather than using cut, because the information that I want is already
-	# saved in a variable, and making a call to cut is wasted resources
-	# It's more expensive to use external programs compared to internal ones ^^
-	# ${1%%,*} - ie : 13,47 -> 13
-	# ${1##,*} - ie : 13,47 -> 47
-	start=${1%%,*}
-	end=${1##*,}
+	start=${1%%,*}      # ${1%%,*} - ie : 13,47 -> 13
+	end=${1##*,}        # ${1##,*} - ie : 13,47 -> 47
 	cf="$2-$5-$3.$ext"
 	re="$4"
 	# extract out all of the text in between the start and end lines
@@ -99,7 +93,7 @@ extract_text_between(){
 	sed -E -i "/${re}/d" "$cf"
 	# ${cf%%.*} - ie : file.name -> file
 	sed "${start},${end}s/.*/@input@${cf}@/g" "copy-$2" > "copy-${cf%%.*}"
-	# 'return' the copy file we just made
+	# return 'copy-file,file.name'
 	printf "%s" "copy-${cf%%.*},${cf}"
 }
 
@@ -140,7 +134,7 @@ grep -qE "${RE_CODE}" "$file" && {
 			sed -i "${start},${end}s/.*/@input@$file_with_extracted_text.$ext@/g" "copy-$file"
 			echo "$file_with_extracted_text.$ext" >> "$GENFILES"
 		} || {
-			# if we aren't coloring code, then just transform the 'RE_CODE' into '```'
+			# if we aren't coloring code, then just transform 'RE_CODE' into '```'
 			a='```'
 			sed -E -i "s/$RE_CODE/$a/;s/$a.*/$a/" "copy-$file"
 		}
