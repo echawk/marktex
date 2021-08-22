@@ -143,10 +143,11 @@ grep -qE "${RE_CODE}" "$file" && {
 		} || {
 			# if we aren't coloring code, then just transform the 'RE_CODE' into '```'
 			a='```'
-			sed -E -i -e "s/$RE_CODE/$a/" -e "s/$a.*/$a/" "copy-$file"
+			sed -E -i "s/$RE_CODE/$a/;s/$a.*/$a/" "copy-$file"
 		}
 		count=$((count + 1))
 		rm "$file_with_extracted_text"
+		lang="" langfile=""
 	done
 }
 
