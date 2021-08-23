@@ -104,11 +104,11 @@ grep -qE "$RE_RAW" "$file" && {
 # The sed call here returns the line numbers that start with the specified regex. We also know that the
 # 'blocks' are containted between every two numbers, so we combine the numbers onto the same line using
 # paste. This produces the proper input for the 'extract_text_between' procedure that is above
-sed -n "/$RE_RAW/=" "$file" | paste -d"," - - | while read -r LINE
+sed -n "/$RE_RAW/=" "$file" | paste -d"," - - | while read -r COORDS
 do
 	# Here we are moving the freshly generated file to copy-$file so that our changes are saved
 	# iteratively
-	mv "$(extract_text_between "$LINE" "$file" "$i" "@r" 'raw' | cut -d',' -f1)" "copy-$file"
+	mv "$(extract_text_between "$COORDS" "$file" "$i" "@r" 'raw' | cut -d',' -f1)" "copy-$file"
 	echo "$file-raw-$i.$ext" >> "$GENFILES"
 	i=$((i + 1))
 done
@@ -120,13 +120,13 @@ RE_CODE='```>[a-z]*>?[a-z]*'
 grep -qE "${RE_CODE}" "$file" && {
 	# we remove the files that are going to be generated so we fit the spec
 	grep -E "${RE_CODE}" "$file" | cut -d">" -f3 | sort -u | xargs -P0 -I{} rm -vf "{}"
-	sed -E -n "/^${RE_CODE}/=" "$file" | paste -d"," - - | while read -r LINE
+	sed -E -n "/^${RE_CODE}/=" "$file" | paste -d"," - - | while read -r COORDS
 	do
-		start=${LINE%%,*}
-		end=${LINE##*,}
+		start=${COORDS%%,*}
+		end=${COORDS##*,}
 		lang=$(sed -n "${start}p" "$file" | cut -d'>' -f2)
 		langfile="$(sed -n "${start}p" "$file" | cut -d'>' -f3)"
-		genfiles=$(extract_text_between "$LINE" "$file" "$i" "$RE_CODE" 'code' )
+		genfiles=$(extract_text_between "$COORDS" "$file" "$i" "$RE_CODE" 'code' )
 		file_with_extracted_text="${genfiles##*,}"
 		[ -n "$langfile" ] && cat "$file_with_extracted_text" >> "$langfile"
 		[ $COLOR_SOURCE = Y ] && {
@@ -148,16 +148,16 @@ i=0
 RE_CITE='@c.*@c'
 grep -qE "$RE_CITE.*" "$file" && {
 	HAS_CITATIONS=yes
-	sed -n "/$RE_CITE/=" "$file" | while read -r LINE
+	sed -n "/$RE_CITE/=" "$file" | while read -r COORDS
 	do
 		cf="$i-cite-$file.$ext"
-		sed -n "${LINE}p" "$file" > "$cf"
+		sed -n "${COORDS}p" "$file" > "$cf"
 		case $OUTFMT in
 			latex) sed -i -E -e "s=^[^@]*@c=@c=;s/@c(.*)@c/\\\\autocite{\1}/g" "$cf" ;;
 			groff) sed -i -E -e "s=^[^@]*@c=@c=;s/@c(.*)@c/\n.[\n\1\n.]\n/g" -e "s/;/\n/g" "$cf" ;;
 			html) ;; #TODO: Add in HTML support
 		esac
-		sed -i "${LINE}s/$RE_CITE/\n@input@${cf}@\n/" "copy-$file"
+		sed -i "${COORDS}s/$RE_CITE/\n@input@${cf}@\n/" "copy-$file"
 		echo "$cf" >> "$GENFILES"
 		i=$((i + 1))
 	done
