@@ -186,11 +186,27 @@ esac
 
 # Add in the preamble and the actually input the '@input' files
 #FIXME: LaTeX Only
-#FIXME: Refactor - this is ugly
 if grep -q "@pre@" "$file.$ext"
 then
-	PREAMINC=$(grep "@pre@" "$file.$ext" | sed -E "s=@pre@(.*)@=input{\1}=")
-	sed -i -E -e "s=^(\\\\documentclass\[[a-zA-Z0-9,]*\]\{[a-zA-Z]*})$=\1\n\n\\\\$PREAMINC=" -e "/^@pre@.*$/d" "$file.$ext"
+	preamfile="preamble-$file.$ext"
+	case $OUTFMT in
+		latex)
+			genpream="$(sed -n "/documentclass/=;/begin{document}/=" "$file.$ext" | paste -d"," - -)"
+			sed -n "${genpream}p" "$file.$ext" > "gen-$preamfile"
+			echo "gen-$preamfile" >> "$GENFILES"
+			sed -i "${genpream}d" "$file.$ext"
+			if grep -q "documentclass" "$preamfile"
+			then
+				sed -i "s/documentclass.*/$(grep "documentclass" "$preamfile")/" "gen-$preamfile"
+				sed -i "/.*documentclass.*/d" "$preamfile"
+			fi
+			tac $preamfile > _ ; mv _ $preamfile
+			tac "gen-$preamfile" | sed "/begin{document}/r $preamfile" | tac > "final-$preamfile"
+			echo "final-$preamfile" >> "$GENFILES"
+			cat "final-$preamfile" "$file.$ext" > _ ; mv _ "$file.$ext"
+		;;
+	esac
+	sed -i -E "/^@pre@.*$/d" "$file.$ext"
 fi
 
 grep -E "@input@" "$file.$ext" | cut -d"@" -f3 | xargs -I{} sed -i -e "/@input@{}@/r {}" -e "/@input@{}@/d"  "$file.$ext"
