@@ -57,7 +57,7 @@ source-highlight | yes       | don't highlight source code
 	- I'm thinking `lmdc` as a possible alternative, but I think the name should have a vowel
 - [ ] Test using `neatroff` instead of `groff` for roff output
 - [ ] Refactor `marktex` to be easier to follow; don't use as many compound variable names...
-	- [ ] fix all of the latex only commands in marktex to be output format agnostic
+	- [x] fix all of the latex only commands in marktex to be output format agnostic
 	- [ ] extract the different parsers to their own scripts
 		- **NOTE:** Right now I'm am putting this on hold; I'll start work on this once marktex is completed
 - [x] Consider changing the extension to represent that this isn't typical markdown; I'm thinking `.lmd`
