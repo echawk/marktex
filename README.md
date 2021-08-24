@@ -65,7 +65,7 @@ source-highlight | yes       | don't highlight source code
 	- perform a runtime identification of the file's extension?
 - [x] Add in support for the preamble
 	- The preamble is tested well in the 'marktex' script, however it has not been throughly tested with the makefile
-- [ ] Add in support to change the document class (ideally in the preamble section)
+- [x] Add in support to change the document class (ideally in the preamble section)
 	- This is only really relevant for LaTeX output
 - [x] Add in support for citation commands
 	- Using miktex, there seems to be an issue with biber
