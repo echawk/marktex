@@ -181,7 +181,7 @@ uniq "copy-$file" | lowdown -s -T"$lowdownfmt" --parse-math -o "$file.$ext";
 rm "copy-$file"
 
 case $OUTFMT in
-	latex) sed -i 's/age{xcolor}/age[dvipsnames]{xcolor}/' "$file.$ext";;
+	latex) sed -i 's/age{xcolor}/age[dvipsnames]{xcolor}/;/title{Untitled article}/d' "$file.$ext";;
 esac
 
 # Add in the preamble and the actually input the '@input' files
