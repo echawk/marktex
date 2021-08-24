@@ -164,7 +164,6 @@ grep -qE "$RE_CITE.*" "$file" && {
 }
 
 # Handle the Preamble block; this is only ran *once*
-# FIXME: LaTeX Only
 if grep -E -q "^@p$" "$file"
 then
 	PREAM=$(sed -n "/^@p$/=" "$file" | paste -d"," - - )
@@ -185,7 +184,6 @@ case $OUTFMT in
 esac
 
 # Add in the preamble and the actually input the '@input' files
-#FIXME: LaTeX Only
 if grep -q "@pre@" "$file.$ext"
 then
 	preamfile="preamble-$file.$ext"
@@ -204,6 +202,9 @@ then
 			tac "gen-$preamfile" | sed "/begin{document}/r $preamfile" | tac > "final-$preamfile"
 			echo "final-$preamfile" >> "$GENFILES"
 			cat "final-$preamfile" "$file.$ext" > _ ; mv _ "$file.$ext"
+		;;
+		groff)
+			cat "$preamfile" "$file.$ext" > _ ; mv _ "$file.$ext"
 		;;
 	esac
 	sed -i -E "/^@pre@.*$/d" "$file.$ext"
