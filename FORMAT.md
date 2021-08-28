@@ -74,5 +74,9 @@ Where `lang` is a language available from source-highlight, and
 The `optionalfile` will be created on the fly; it's assumed to
 be nonexistent at runtime.
 
+If you don't want to program directly in the `.lmd` file, you can
+instead have your code read in at compile time by using this
+format instead:
 
+	sourcefile>```>lang
 
