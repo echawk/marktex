@@ -53,7 +53,7 @@ source-highlight | yes       | don't highlight source code
 
 ## TODO
 - [ ] Update the README to better reflect the state of the project
-- [ ] Rename `marktex` to something more broad, since I don't want a hard dependency on LaTeX
+- [x] Rename `marktex` to something more broad, since I don't want a hard dependency on LaTeX
 	- I'm thinking `lmdc` as a possible alternative, but I think the name should have a vowel
 - [ ] Test using `neatroff` instead of `groff` for roff output
 - [ ] Refactor `marktex` to be easier to follow; don't use as many compound variable names...
@@ -80,6 +80,8 @@ source-highlight | yes       | don't highlight source code
 - [x] Support proper inline math with the '@m' tags
 	- We don't have to support this ourselves; lowdown already offers a '--parse-math' flag to hande this.
 		- **NOTE:** This is LaTeX only
+- [ ] Add in support to read a source code file to highlight; this would be the reverse of how we currently handle code blocks
+	- [ ] Update the Format file to specify the proper syntax how to do this
 
 ### Long Term
 - Reduce the dependence on LaTeX; add in the ability to use groff instead
