@@ -114,19 +114,38 @@ do
 done
 }
 
+RE_CODE='```>[a-z]*>?[a-z]*'
+# read in source files and create code blocks
+grep -qE "^[^>]+>${RE_CODE}" "$file" && {
+	temp_file="$(mktemp)"
+	input_files="$(grep -E "^[^>]+>${RE_CODE}" "$file" | cut -d'>' -f1)"
+	for f in $input_files
+	do
+		origline="$(grep -E "$f>${RE_CODE}" "$file")"
+		newline="${origline#*>}" # proper format for the code file handling below
+		echo "$newline" > "$temp_file"
+		cat "$f" >> "$temp_file"
+		echo "$newline" >> "$temp_file"
+		sed -i -E -e "/$f>${RE_CODE}/r $temp_file" -e "/$f>${RE_CODE}/d" "copy-$file"
+	done
+	echo "$temp_file" >> $GENFILES
+	unset temp_file
+}
+
+cat copy-$file
+
 # Create the code files; both in the output document format and as an independent file (if applicable)
 i=0
-RE_CODE='```>[a-z]*>?[a-z]*'
-grep -qE "${RE_CODE}" "$file" && {
+grep -qE "${RE_CODE}" "copy-$file" && {
 	# we remove the files that are going to be generated so we fit the spec
-	grep -E "${RE_CODE}" "$file" | cut -d">" -f3 | sort -u | xargs -P0 -I{} rm -vf "{}"
-	sed -E -n "/^${RE_CODE}/=" "$file" | paste -d"," - - | while read -r COORDS
+	grep -E "${RE_CODE}" "copy-$file" | cut -d">" -f3 | sort -u | xargs -P0 -I{} rm -vf "{}"
+	sed -E -n "/^${RE_CODE}/=" "copy-$file" | paste -d"," - - | while read -r COORDS
 	do
 		start=${COORDS%%,*}
 		end=${COORDS##*,}
-		lang=$(sed -n "${start}p" "$file" | cut -d'>' -f2)
-		langfile="$(sed -n "${start}p" "$file" | cut -d'>' -f3)"
-		genfiles=$(extract_text_between "$COORDS" "$file" "$i" "$RE_CODE" 'code' )
+		lang=$(sed -n "${start}p" "copy-$file" | cut -d'>' -f2)
+		langfile="$(sed -n "${start}p" "copy-$file" | cut -d'>' -f3)"
+		genfiles=$(extract_text_between "$COORDS" "copy-$file" "$i" "$RE_CODE" 'code' )
 		file_with_extracted_text="${genfiles##*,}"
 		[ -n "$langfile" ] && cat "$file_with_extracted_text" >> "$langfile"
 		[ $COLOR_SOURCE = Y ] && {
@@ -137,6 +156,7 @@ grep -qE "${RE_CODE}" "$file" && {
 			# if we aren't coloring code, then just transform 'RE_CODE' into '```'
 			a='```'
 			sed -E -i "s/$RE_CODE/$a/;s/$a.*/$a/" "copy-$file"
+			unset langfile
 		}
 		i=$((i + 1))
 		rm "$file_with_extracted_text"
