@@ -132,8 +132,6 @@ grep -qE "^[^>]+>${RE_CODE}" "$file" && {
 	unset temp_file
 }
 
-cat copy-$file
-
 # Create the code files; both in the output document format and as an independent file (if applicable)
 i=0
 grep -qE "${RE_CODE}" "copy-$file" && {
