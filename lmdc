@@ -148,14 +148,9 @@ grep -qE "${RE_CODE}" "copy-$file" && {
 			sed -i "${start},${end}s/.*/@input@$file_with_extracted_text.$ext@/g" "copy-$file"
 			echo "$file_with_extracted_text.$ext" >> "$GENFILES"
 		else
-			# FIXME: when we enter this block, somehow we are creating a file named '```'
-			# I know this because, when we run lmdc with the -c flag, the file is *never* created
-			# instead it is only created when we run lmdc without the flag.
-			# I don't know at the moment what causes this bug, however it is infuriating
-
 			# if we aren't coloring code, then just transform 'RE_CODE' into '```'
 			a='```'
-			sed -E -i -e "s/$RE_CODE/$a/" -e "s/$a.*/$a/" "copy-$file"
+			sed -E -i -e "${COORDS}s/$RE_CODE/$a/" -e "${COORDS}s/$a.*/$a/" "copy-$file"
 			unset a
 		fi
 		i=$((i + 1))
