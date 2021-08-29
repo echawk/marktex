@@ -125,7 +125,7 @@ grep -qE "^[^>]+>${RE_CODE}" "$file" && {
 		cat "$f" >> "$f.md"
 		echo "$newline" >> "$f.md"
 		sed -i -E -e "/${f}>${RE_CODE}/r $f.md" -e "/${f}>${RE_CODE}/d" "copy-$file"
-		echo "$f.md" >> $GENFILES
+		echo "$f.md" >> "$GENFILES"
 	done
 }
 
@@ -213,7 +213,7 @@ then
 				sed -i "s/documentclass.*/$(grep "documentclass" "$preamfile")/" "gen-$preamfile"
 				sed -i "/.*documentclass.*/d" "$preamfile"
 			fi
-			tac $preamfile > _ ; mv _ $preamfile
+			tac "$preamfile" > _ ; mv _ "$preamfile"
 			tac "gen-$preamfile" | sed "/begin{document}/r $preamfile" | tac > "final-$preamfile"
 			echo "final-$preamfile" >> "$GENFILES"
 			cat "final-$preamfile" "$file.$ext" > _ ; mv _ "$file.$ext"
@@ -231,11 +231,11 @@ grep -E "@input@" "$file.$ext" | cut -d"@" -f3 | xargs -I{} sed -i -e "/@input@{
 case $OUTFMT in
 	latex) ${TEXCC} "$file.$ext"
 		[ -n "$HAS_CITATIONS" ] && {
-			grep -q biber "$file.$ext" && {
+			if grep -q biber "$file.$ext" ; then
 				biber "$file"
-			} || {
+			else
 				bibtex "$file"
-			}
+			fi
 			${TEXCC} "$file.$ext"
 		}
 		latexmk -c -f "$file.$ext";;
