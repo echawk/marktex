@@ -78,5 +78,5 @@ If you don't want to program directly in the `.lmd` file, you can
 instead have your code read in at compile time by using this
 format instead:
 
-	sourcefile>```>lang
+	sourcefile>```>lang>optionalfile
 
