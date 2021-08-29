@@ -75,10 +75,9 @@ GENFILES="$(mktemp)"
 # require is the removal of extensions, and fixing formatting.
 #FIXME: implement markdown and gfm here
 
-# extract_text_between
 #ex:
 # $1 -> 13,43      - start and end line numbers
-# $2 -> file       - the file to modify
+# $2 -> copy-file  - the file to modify
 # $3 -> i          - the current i (in reference to each loop)
 # $4 -> re pattern - the regex pattern to remove from the extracted text
 # $5 -> identifier - 'raw', 'code', etc.
@@ -117,19 +116,17 @@ done
 RE_CODE='```>[a-z]*>?[a-z]*'
 # read in source files and create code blocks
 grep -qE "^[^>]+>${RE_CODE}" "$file" && {
-	temp_file="$(mktemp)"
 	input_files="$(grep -E "^[^>]+>${RE_CODE}" "$file" | cut -d'>' -f1)"
 	for f in $input_files
 	do
-		origline="$(grep -E "$f>${RE_CODE}" "$file")"
+		origline="$(grep -E "$f>${RE_CODE}" "$file" | sed 1q )"
 		newline="${origline#*>}" # proper format for the code file handling below
-		echo "$newline" > "$temp_file"
-		cat "$f" >> "$temp_file"
-		echo "$newline" >> "$temp_file"
-		sed -i -E -e "/$f>${RE_CODE}/r $temp_file" -e "/$f>${RE_CODE}/d" "copy-$file"
+		echo "$newline" > "$f.md"
+		cat "$f" >> "$f.md"
+		echo "$newline" >> "$f.md"
+		sed -i -E -e "/${f}>${RE_CODE}/r $f.md" -e "/${f}>${RE_CODE}/d" "copy-$file"
+		echo "$f.md" >> $GENFILES
 	done
-	echo "$temp_file" >> $GENFILES
-	unset temp_file
 }
 
 # Create the code files; both in the output document format and as an independent file (if applicable)
@@ -146,16 +143,21 @@ grep -qE "${RE_CODE}" "copy-$file" && {
 		genfiles=$(extract_text_between "$COORDS" "copy-$file" "$i" "$RE_CODE" 'code' )
 		file_with_extracted_text="${genfiles##*,}"
 		[ -n "$langfile" ] && cat "$file_with_extracted_text" >> "$langfile"
-		[ $COLOR_SOURCE = Y ] && {
+		if [ $COLOR_SOURCE = Y ] ; then
 			source-highlight --src-lang "$lang" --out-format "$highlightfmt" -o "$file_with_extracted_text.$ext" -i "$file_with_extracted_text"
 			sed -i "${start},${end}s/.*/@input@$file_with_extracted_text.$ext@/g" "copy-$file"
 			echo "$file_with_extracted_text.$ext" >> "$GENFILES"
-		} || {
+		else
+			# FIXME: when we enter this block, somehow we are creating a file named '```'
+			# I know this because, when we run lmdc with the -c flag, the file is *never* created
+			# instead it is only created when we run lmdc without the flag.
+			# I don't know at the moment what causes this bug, however it is infuriating
+
 			# if we aren't coloring code, then just transform 'RE_CODE' into '```'
 			a='```'
-			sed -E -i "s/$RE_CODE/$a/;s/$a.*/$a/" "copy-$file"
-			unset langfile
-		}
+			sed -E -i -e "s/$RE_CODE/$a/" -e "s/$a.*/$a/" "copy-$file"
+			unset a
+		fi
 		i=$((i + 1))
 		rm "$file_with_extracted_text"
 		lang="" langfile=""
