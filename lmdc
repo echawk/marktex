@@ -82,16 +82,16 @@ GENFILES="$(mktemp)"
 # $4 -> re pattern - the regex pattern to remove from the extracted text
 # $5 -> identifier - 'raw', 'code', etc.
 extract_text_between(){
-	start=${1%%,*}      # ${1%%,*} - ie : 13,47 -> 13
-	end=${1##*,}        # ${1##,*} - ie : 13,47 -> 47
+	s=${1%%,*}      # ${1%%,*} - ie : 13,47 -> 13
+	e=${1##*,}        # ${1##,*} - ie : 13,47 -> 47
 	cf="$2-$5-$3.$ext"
 	re="$4"
 	# extract out all of the text in between the start and end lines
-	sed -n "${start},${end}p" "$2" > "$cf"
+	sed -n "${s},${e}p" "$2" > "$cf"
 	# remove the marker for the raw blocks
 	sed -E -i "/${re}/d" "$cf"
 	# ${cf%%.*} - ie : file.name -> file
-	sed "${start},${end}s/.*/@input@${cf}@/g" "copy-$2" > "copy-${cf%%.*}"
+	sed "${s},${e}s/.*/@input@${cf}@/g" "$2" > "copy-${cf%%.*}"
 	# return 'copy-file,file.name'
 	printf "%s" "copy-${cf%%.*},${cf}"
 }
