@@ -96,22 +96,7 @@ extract_text_between(){
 	printf "%s" "copy-${cf%%.*},${cf}"
 }
 
-i=0
-RE_RAW="^@r$"
 cp "$file" "copy-$file"
-grep -qE "$RE_RAW" "$file" && {
-# The sed call here returns the line numbers that start with the specified regex. We also know that the
-# 'blocks' are containted between every two numbers, so we combine the numbers onto the same line using
-# paste. This produces the proper input for the 'extract_text_between' procedure that is above
-sed -n "/$RE_RAW/=" "$file" | paste -d"," - - | while read -r COORDS
-do
-	# Here we are moving the freshly generated file to copy-$file so that our changes are saved
-	# iteratively
-	mv "$(extract_text_between "$COORDS" "$file" "$i" "@r" 'raw' | cut -d',' -f1)" "copy-$file"
-	echo "$file-raw-$i.$ext" >> "$GENFILES"
-	i=$((i + 1))
-done
-}
 
 RE_CODE='```>[a-z]*>?[a-z]*'
 # read in source files and create code blocks
@@ -127,6 +112,22 @@ grep -qE "^[^>]+>${RE_CODE}" "$file" && {
 		sed -i -E -e "/${f}>${RE_CODE}/r $f.md" -e "/${f}>${RE_CODE}/d" "copy-$file"
 		echo "$f.md" >> "$GENFILES"
 	done
+}
+
+i=0
+RE_RAW="^@r$"
+grep -qE "$RE_RAW" "copy-$file" && {
+# The sed call here returns the line numbers that start with the specified regex. We also know that the
+# 'blocks' are containted between every two numbers, so we combine the numbers onto the same line using
+# paste. This produces the proper input for the 'extract_text_between' procedure that is above
+sed -n "/$RE_RAW/=" "copy-$file" | paste -d"," - - | while read -r COORDS
+do
+	# Here we are moving the freshly generated file to copy-$file so that our changes are saved
+	# iteratively
+	mv "$(extract_text_between "$COORDS" "copy-$file" "$i" "@r" 'raw' | cut -d',' -f1)" "copy-$file"
+	echo "copy-$file-raw-$i.$ext" >> "$GENFILES"
+	i=$((i + 1))
+done
 }
 
 # Create the code files; both in the output document format and as an independent file (if applicable)
@@ -161,12 +162,12 @@ grep -qE "${RE_CODE}" "copy-$file" && {
 
 i=0
 RE_CITE='@c.*@c'
-grep -qE "$RE_CITE.*" "$file" && {
+grep -qE "$RE_CITE.*" "copy-$file" && {
 	HAS_CITATIONS=yes
-	sed -n "/$RE_CITE/=" "$file" | while read -r COORDS
+	sed -n "/$RE_CITE/=" "copy-$file" | while read -r COORDS
 	do
 		cf="$i-cite-$file.$ext"
-		sed -n "${COORDS}p" "$file" > "$cf"
+		sed -n "${COORDS}p" "copy-$file" > "$cf"
 		case $OUTFMT in
 			latex) sed -i -E -e "s=^[^@]*@c=@c=;s/@c(.*)@c/\\\\autocite{\1}/g" "$cf" ;;
 			groff) sed -i -E -e "s=^[^@]*@c=@c=;s/@c(.*)@c/\n.[\n\1\n.]\n/g" -e "s/;/\n/g" "$cf" ;;
@@ -179,12 +180,12 @@ grep -qE "$RE_CITE.*" "$file" && {
 }
 
 # Handle the Preamble block; this is only ran *once*
-if grep -E -q "^@p$" "$file"
+if grep -E -q "^@p$" "copy-$file"
 then
-	PREAM=$(sed -n "/^@p$/=" "$file" | paste -d"," - - )
+	PREAM=$(sed -n "/^@p$/=" "copy-$file" | paste -d"," - - )
 	start=${PREAM%%,*}
 	end=${PREAM##*,}
-	sed -n "${start},${end}p" "$file" > "preamble-$file.$ext"
+	sed -n "${start},${end}p" "copy-$file" > "preamble-$file.$ext"
 	sed -i "/@p/d" "preamble-$file.$ext"
 	sed -i "${start},${end}s/.*/@pre@preamble-$file.$ext@/g" "copy-$file"
 	echo "preamble-$file.$ext" >> "$GENFILES"
