@@ -80,8 +80,8 @@ source-highlight | yes       | don't highlight source code
 - [x] Support proper inline math with the '@m' tags
 	- We don't have to support this ourselves; lowdown already offers a '--parse-math' flag to hande this.
 		- **NOTE:** This is LaTeX only
-- [ ] Add in support to read a source code file to highlight; this would be the reverse of how we currently handle code blocks
-	- [ ] Update the Format file to specify the proper syntax how to do this
+- [x] Add in support to read a source code file to highlight; this would be the reverse of how we currently handle code blocks
+	- [x] Update the Format file to specify the proper syntax how to do this
 
 ### Long Term
 - Reduce the dependence on LaTeX; add in the ability to use groff instead
