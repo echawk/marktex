@@ -25,27 +25,21 @@ do
 	case $arg in
 		-l|--latex)
 			OUTFMT="latex"; ext="tex" ; highlightfmt="latexcolor"    ; lowdownfmt="latex"
-			shift
 			;;
 		-g|--groff)
 			OUTFMT="groff"; ext="ms"  ; highlightfmt="groff_mm_color"; lowdownfmt="ms"
-			shift
 			;;
 		-w|--html)
 			OUTFMT="html" ; ext="html"; highlightfmt="html"          ; lowdownfmt="html"
-			shift
 			;;
 		-m|--markdown)
 			OUTFMT="md"   ; ext="md"  ; highlightfmt="latexcolor"    ; lowdownfmt="latex"
-			shift
 			;;
 		-f|--github-flavored-markdown)
 			OUTFMT="gfm"  ; ext="md"  ; highlightfmt=""              ; lowdownfmt=""
-			shift
 			;;
 		-c|--color-source)
 			COLOR_SOURCE=Y
-			shift
 			;;
 		-h|--help)
 			shift
@@ -55,14 +49,14 @@ do
 		-i|--input)
 			shift
 			file="$1"
-			shift
 			;;
 		*)
 			# Below is a fix for kornshell compatible shells. If there is nothing left in the
 			# arugment list to shift, then we break, otherwise, shift
-			[ -z "$*" ] && break || shift
+			[ -z "$*" ] && break
 			;;
 	esac
+	shift
 done
 
 [ -z "$file" ] && echo "$USAGE" && echo "No file! Exiting..." && exit 1
