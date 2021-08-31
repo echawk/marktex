@@ -210,13 +210,13 @@ then
 				sed -i "s/documentclass.*/$(grep "documentclass" "$preamfile")/" "gen-$preamfile"
 				sed -i "/.*documentclass.*/d" "$preamfile"
 			fi
-			tac "$preamfile" > _ ; mv _ "$preamfile"
+			t="$(mktemp)" ; tac "$preamfile" > "$t" ; mv "$t" "$preamfile"
 			tac "gen-$preamfile" | sed "/begin{document}/r $preamfile" | tac > "final-$preamfile"
 			echo "final-$preamfile" >> "$GENFILES"
-			cat "final-$preamfile" "$file.$ext" > _ ; mv _ "$file.$ext"
+			t="$(mktemp)" ; cat "final-$preamfile" "$file.$ext" > "$t" ; mv "$t" "$file.$ext"
 		;;
 		groff)
-			cat "$preamfile" "$file.$ext" > _ ; mv _ "$file.$ext"
+			t="$(mktemp)" ; cat "$preamfile" "$file.$ext" > "$t" ; mv "$t" "$file.$ext"
 		;;
 	esac
 	sed -i -E "/^@pre@.*$/d" "$file.$ext"
