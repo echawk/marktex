@@ -50,6 +50,9 @@ do
 			shift
 			file="$1"
 			;;
+		--no-pdf)
+			NO_PDF=1
+			;;
 		*)
 			# Below is a fix for kornshell compatible shells. If there is nothing left in the
 			# arugment list to shift, then we break, otherwise, shift
@@ -221,6 +224,7 @@ fi
 
 grep -E "@input@" "$file.$ext" | cut -d"@" -f3 | xargs -I{} sed -i -e "/@input@{}@/r {}" -e "/@input@{}@/d"  "$file.$ext"
 
+[ -z $NO_PDF ] && {
 # Compile with the right compiler
 case $OUTFMT in
 	latex) ${TEXCC} "$file.$ext"
@@ -236,6 +240,7 @@ case $OUTFMT in
 	groff) gc="tee"; which grap && gc="grap"; refer < "$file.$ext" | preconv | eqn -Tpdf | tbl | $gc | pic | groff -mspdf -Tpdf > "$file.pdf";;
 	html) ;;
 esac
+}
 
 # Remove temporary files
 sort -u < "$GENFILES" | xargs -P0 -I{} rm -v {}
