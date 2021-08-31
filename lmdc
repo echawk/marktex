@@ -42,7 +42,6 @@ do
 			COLOR_SOURCE=Y
 			;;
 		-h|--help)
-			shift
 			printf "%s" "$HELP"
 			exit 0
 			;;
@@ -55,7 +54,7 @@ do
 			;;
 		*)
 			# Below is a fix for kornshell compatible shells. If there is nothing left in the
-			# arugment list to shift, then we break, otherwise, shift
+			# arugment list to shift then we break
 			[ -z "$*" ] && break
 			;;
 	esac
