@@ -23,24 +23,12 @@ COLOR_SOURCE="N"
 for arg in "$@"
 do
 	case $arg in
-		-l|--latex)
-			OUTFMT="latex"; ext="tex" ; highlightfmt="latexcolor"    ; lowdownfmt="latex"
-			;;
-		-g|--groff)
-			OUTFMT="groff"; ext="ms"  ; highlightfmt="groff_mm_color"; lowdownfmt="ms"
-			;;
-		-w|--html)
-			OUTFMT="html" ; ext="html"; highlightfmt="html"          ; lowdownfmt="html"
-			;;
-		-m|--markdown)
-			OUTFMT="md"   ; ext="md"  ; highlightfmt="latexcolor"    ; lowdownfmt="latex"
-			;;
-		-f|--github-flavored-markdown)
-			OUTFMT="gfm"  ; ext="md"  ; highlightfmt=""              ; lowdownfmt=""
-			;;
-		-c|--color-source)
-			COLOR_SOURCE=Y
-			;;
+		-l|--latex)    OUTFMT="latex"; ext="tex" ; highlightfmt="latexcolor"    ; lowdownfmt="latex" ;;
+		-g|--groff)    OUTFMT="groff"; ext="ms"  ; highlightfmt="groff_mm_color"; lowdownfmt="ms"    ;;
+		-w|--html)     OUTFMT="html" ; ext="html"; highlightfmt="html"          ; lowdownfmt="html"  ;;
+		-m|--markdown) OUTFMT="md"   ; ext="md"  ; highlightfmt="latexcolor"    ; lowdownfmt="latex" ;;
+		-f|--github-flavored-markdown) OUTFMT="gfm"  ; ext="md"  ; highlightfmt=""              ; lowdownfmt="" ;;
+		-c|--color-source) COLOR_SOURCE=Y ;;
 		-h|--help)
 			printf "%s" "$HELP"
 			exit 0
@@ -49,9 +37,7 @@ do
 			shift
 			file="$1"
 			;;
-		--no-pdf)
-			NO_PDF=1
-			;;
+		--no-pdf) NO_PDF=1 ;;
 		*)
 			# Below is a fix for kornshell compatible shells. If there is nothing left in the
 			# arugment list to shift then we break
