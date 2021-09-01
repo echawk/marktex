@@ -52,6 +52,9 @@ done
 TEXCC=${TEXCC:-pdflatex}
 GENFILES="$(mktemp)"
 t="$GENFILES-tempfile" ; echo "$t" >> "$GENFILES"
+RE_CODE='```>[a-z]*>?[a-z]*'
+RE_RAW="^@r$"
+RE_CITE='@c.*@c'
 
 # markdown and github-flavored-markdown are special in that they
 # require very minimal preprocessing. The only preprocessing they
@@ -80,7 +83,6 @@ extract_text_between(){
 
 cp "$file" "copy-$file"
 
-RE_CODE='```>[a-z]*>?[a-z]*'
 # read in source files and create code blocks
 grep -qE "^[^>]+>${RE_CODE}" "$file" && {
 	input_files="$(grep -E "^[^>]+>${RE_CODE}" "$file" | cut -d'>' -f1)"
@@ -97,7 +99,6 @@ grep -qE "^[^>]+>${RE_CODE}" "$file" && {
 }
 
 i=0
-RE_RAW="^@r$"
 grep -qE "$RE_RAW" "copy-$file" && {
 # The sed call here returns the line numbers that start with the specified regex. We also know that the
 # 'blocks' are containted between every two numbers, so we combine the numbers onto the same line using
@@ -143,7 +144,6 @@ grep -qE "${RE_CODE}" "copy-$file" && {
 }
 
 i=0
-RE_CITE='@c.*@c'
 grep -qE "$RE_CITE.*" "copy-$file" && {
 	HAS_CITATIONS=yes
 	sed -n "/$RE_CITE/=" "copy-$file" | while read -r COORDS
