@@ -165,11 +165,9 @@ grep -qE "$RE_CITE.*" "copy-$file" && {
 if grep -E -q "^@p$" "copy-$file"
 then
 	PREAM=$(sed -n "/^@p$/=" "copy-$file" | paste -d"," - - )
-	start=${PREAM%%,*}
-	end=${PREAM##*,}
-	sed -n "${start},${end}p" "copy-$file" > "preamble-$file.$ext"
+	sed -n "${PREAM}p" "copy-$file" > "preamble-$file.$ext"
 	sed -i "/@p/d" "preamble-$file.$ext"
-	sed -i "${start},${end}s/.*/@pre@preamble-$file.$ext@/g" "copy-$file"
+	sed -i "${PREAM}s/.*/@pre@preamble-$file.$ext@/g" "copy-$file"
 	echo "preamble-$file.$ext" >> "$GENFILES"
 fi
 
