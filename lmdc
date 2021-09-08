@@ -61,7 +61,6 @@ RE_CITE='@c.*@c'
 # require is the removal of extensions, and fixing formatting.
 #FIXME: implement markdown and gfm here
 
-#ex:
 # $1 -> 13,43      - start and end line numbers
 # $2 -> copy-file  - the file to modify
 # $3 -> i          - the current i (in reference to each loop)
@@ -124,7 +123,6 @@ grep -qE "${RE_CODE}" "copy-$file" && {
 	sedpaste "/^${RE_CODE}/=" "copy-$file" | while read -r COORDS
 	do
 		start=${COORDS%%,*}
-		end=${COORDS##*,}
 		lang=$(sed -n "${start}p" "copy-$file" | cut -d'>' -f2)
 		langfile="$(sed -n "${start}p" "copy-$file" | cut -d'>' -f3)"
 		genfiles=$(extract_text_between "$COORDS" "copy-$file" "$i" "$RE_CODE" 'code' )
@@ -132,7 +130,7 @@ grep -qE "${RE_CODE}" "copy-$file" && {
 		[ -n "$langfile" ] && cat "$file_with_extracted_text" >> "$langfile"
 		if [ $COLOR_SOURCE = Y ] ; then
 			source-highlight --src-lang "$lang" --out-format "$highlightfmt" -o "$file_with_extracted_text.$ext" -i "$file_with_extracted_text"
-			sed -i "${start},${end}s/.*/@input@$file_with_extracted_text.$ext@/g" "copy-$file"
+			sed -i "${COORDS}s/.*/@input@$file_with_extracted_text.$ext@/g" "copy-$file"
 			echo "$file_with_extracted_text.$ext" >> "$GENFILES"
 		else
 			# if we aren't coloring code, then just transform 'RE_CODE' into '```'
