@@ -18,7 +18,6 @@ HELP="$USAGE
 -h, --help
 	Print this message
 "
-OUTFMT="latex"; ext="tex" ; highlightfmt="latexcolor"    ; lowdownfmt="latex"
 COLOR_SOURCE="N"
 for arg in "$@"
 do
@@ -28,7 +27,7 @@ do
 		-w|--html)     OUTFMT="html" ; ext="html"; highlightfmt="html"          ; lowdownfmt="html"  ;;
 		-m|--markdown) OUTFMT="md"   ; ext="md"  ; highlightfmt="latexcolor"    ; lowdownfmt="latex" ;;
 		-f|--github-flavored-markdown) OUTFMT="gfm"  ; ext="md"  ; highlightfmt=""              ; lowdownfmt="" ;;
-		-c|--color-source) COLOR_SOURCE=Y ;;
+		-c|--color-source) COLOR_SOURCE="Y" ;;
 		-h|--help)
 			printf "%s" "$HELP"
 			exit 0
@@ -46,8 +45,8 @@ do
 	esac
 	shift
 done
-
 [ -z "$file" ] && echo "$USAGE" && echo "No file! Exiting..." && exit 1
+[ -z "$OUTFMT" ] && echo "$USAGE" && echo "Missing output format!" && exit 1
 
 TEXCC=${TEXCC:-pdflatex}
 GENFILES="$(mktemp)"
