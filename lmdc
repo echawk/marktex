@@ -85,8 +85,7 @@ cp "$file" "copy-$file"
 
 # read in source files and create code blocks
 grep -qE "^[^>]+>${RE_CODE}" "$file" && {
-	input_files="$(grep -E "^[^>]+>${RE_CODE}" "$file" | cut -d'>' -f1)"
-	for f in $input_files
+	grep -E "^[^>]+>${RE_CODE}" "$file" | cut -d'>' -f1 | while read -r f
 	do
 		origline="$(grep -E "$f>${RE_CODE}" "$file" | sed 1q )"
 		newline="${origline#*>}" # proper format for the code file handling below
