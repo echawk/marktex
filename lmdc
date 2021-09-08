@@ -186,7 +186,7 @@ then
 	preamfile="preamble-$file.$ext"
 	case $OUTFMT in
 		latex)
-			genpream="$(sedpaste "/documentclass/=;/begin{document}/=" "$file.$ext")"
+			genpream="$(sedpaste "/documentclass/=;/begin\{document\}/=" "$file.$ext")"
 			sed -n "${genpream}p" "$file.$ext" > "gen-$preamfile"
 			echo "gen-$preamfile" >> "$GENFILES"
 			sed -i "${genpream}d" "$file.$ext"
