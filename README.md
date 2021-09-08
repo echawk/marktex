@@ -53,6 +53,7 @@ source-highlight | yes       | don't highlight source code
 
 ## TODO
 - [ ] Update the README to better reflect the state of the project
+- [ ] Add in a 'switch' statemnt to FORMAT.md - depending on the output format, it will determine what 'branch' to use
 - [ ] Perform a complete refactor of `lmdc` and possibly rewrite in c or go
 - [x] Rename `marktex` to something more broad, since I don't want a hard dependency on LaTeX
 	- I'm thinking `lmdc` as a possible alternative, but I think the name should have a vowel
