@@ -227,5 +227,5 @@ esac
 }
 
 # Remove temporary files
-sort -u < "$GENFILES" | xargs -P0 -I{} rm -v {}
+sort -u < "$GENFILES" | xargs -P0 -I{} rm -vf {}
 rm "$GENFILES"
