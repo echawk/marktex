@@ -81,6 +81,10 @@ extract_text_between(){
 	echo "copy-${cf%%.*}" >> "$GENFILES"
 }
 
+sedpaste(){
+	sed -E -n "$1" "$2" | paste -d"," - -
+}
+
 cp "$file" "copy-$file"
 
 # read in source files and create code blocks
@@ -102,7 +106,7 @@ grep -qE "$RE_RAW" "copy-$file" && {
 # The sed call here returns the line numbers that start with the specified regex. We also know that the
 # 'blocks' are containted between every two numbers, so we combine the numbers onto the same line using
 # paste. This produces the proper input for the 'extract_text_between' procedure that is above
-sed -n "/$RE_RAW/=" "copy-$file" | paste -d"," - - | while read -r COORDS
+sedpaste "/$RE_RAW/=" "copy-$file" | while read -r COORDS
 do
 	# Here we are moving the freshly generated file to copy-$file so that our changes are saved
 	# iteratively
@@ -117,7 +121,7 @@ i=0
 grep -qE "${RE_CODE}" "copy-$file" && {
 	# we remove the files that are going to be generated so we fit the spec
 	grep -E "${RE_CODE}" "copy-$file" | cut -d">" -f3 | sort -u | xargs -P0 -I{} rm -vf "{}"
-	sed -E -n "/^${RE_CODE}/=" "copy-$file" | paste -d"," - - | while read -r COORDS
+	sedpaste "/^${RE_CODE}/=" "copy-$file" | while read -r COORDS
 	do
 		start=${COORDS%%,*}
 		end=${COORDS##*,}
@@ -163,7 +167,7 @@ grep -qE "$RE_CITE.*" "copy-$file" && {
 # Handle the Preamble block; this is only ran *once*
 if grep -E -q "^@p$" "copy-$file"
 then
-	PREAM=$(sed -n "/^@p$/=" "copy-$file" | paste -d"," - - )
+	PREAM=$(sedpaste "/^@p$/=" "copy-$file")
 	sed -n "${PREAM}p" "copy-$file" > "preamble-$file.$ext"
 	sed -i "/@p/d" "preamble-$file.$ext"
 	sed -i "${PREAM}s/.*/@pre@preamble-$file.$ext@/g" "copy-$file"
@@ -184,7 +188,7 @@ then
 	preamfile="preamble-$file.$ext"
 	case $OUTFMT in
 		latex)
-			genpream="$(sed -n "/documentclass/=;/begin{document}/=" "$file.$ext" | paste -d"," - -)"
+			genpream="$(sedpaste "/documentclass/=;/begin{document}/=" "$file.$ext")"
 			sed -n "${genpream}p" "$file.$ext" > "gen-$preamfile"
 			echo "gen-$preamfile" >> "$GENFILES"
 			sed -i "${genpream}d" "$file.$ext"
