@@ -171,9 +171,25 @@ then
 	echo "preamble-$file.$ext" >> "$GENFILES"
 fi
 
-# Get rid of duplicate lines and Comile the cleaned markdown with lowdown into the proper output format
-uniq "copy-$file" | lowdown -s -T"$lowdownfmt" --parse-math -o "$file.$ext";
+# Get rid of duplicate lines and compile the cleaned markdown with lowdown into the proper output format
+uniq "copy-$file" | lowdown -s -T"$lowdownfmt" --parse-math -o "$file.$ext"
+# potential new code below
+cat <<EOF > /dev/null
+cmd=""
+case $OUTFMT in
+	latex) cmd="lowdown -s -T\"$lowdownfmt\" --parse-math -o \"$file.$ext\"";;
+	groff)
+		if [ -x $(command -v lowdown) ] ; then
+			cmd="lowdown -s -T\"$lowdownfmt\" --parse-math -o \"$file.$ext\""
+		elif [ -x $(command -v md2roff) ] ; then
+			cmd="md2roff > \"$file.$ext\""
+		fi
+	;;
+esac
+#eval "uniq \"copy-$file\" | $cmd"
+uniq "copy-$file" | $cmd 2>/dev/null
 rm "copy-$file"
+EOF
 
 case $OUTFMT in
 	latex) sed -i 's/age{xcolor}/age[dvipsnames]{xcolor}/;/title{Untitled article}/d' "$file.$ext";;
