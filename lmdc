@@ -36,6 +36,9 @@ do
 			shift
 			file="$1"
 			;;
+		-o|--output)
+			outfile="$1"
+			;;
 		--no-pdf) NO_PDF=1 ;;
 		*)
 			# Below is a fix for kornshell compatible shells. If there is nothing left in the
@@ -47,6 +50,7 @@ do
 done
 [ -z "$file" ] && echo "$USAGE" && echo "No file! Exiting..." && exit 1
 [ -z "$OUTFMT" ] && echo "$USAGE" && echo "Missing output format!" && exit 1
+[ -z "$outfile" ] && outfile="$file.$ext"
 
 TEXCC=${TEXCC:-pdflatex}
 GENFILES="$(mktemp)"
@@ -148,7 +152,7 @@ grep -qE "$RE_CITE.*" "copy-$file" && {
 	HAS_CITATIONS=yes
 	sed -n "/$RE_CITE/=" "copy-$file" | while read -r COORDS
 	do
-		cf="$i-cite-$file.$ext"
+		cf="$i-cite-$outfile"
 		sed -n "${COORDS}p" "copy-$file" > "$cf"
 		case $OUTFMT in
 			latex) sed -i -E -e "s=^[^@]*@c=@c=;s/@c(.*)@c/\\\\autocite{\1}/g" "$cf" ;;
@@ -165,25 +169,25 @@ grep -qE "$RE_CITE.*" "copy-$file" && {
 if grep -E -q "^@p$" "copy-$file"
 then
 	PREAM=$(sedpaste "/^@p$/=" "copy-$file")
-	sed -n "${PREAM}p" "copy-$file" > "preamble-$file.$ext"
-	sed -i "/@p/d" "preamble-$file.$ext"
-	sed -i "${PREAM}s/.*/@pre@preamble-$file.$ext@/g" "copy-$file"
-	echo "preamble-$file.$ext" >> "$GENFILES"
+	sed -n "${PREAM}p" "copy-$file" > "preamble-$outfile"
+	sed -i "/@p/d" "preamble-$outfile"
+	sed -i "${PREAM}s/.*/@pre@preamble-$outfile@/g" "copy-$file"
+	echo "preamble-$outfile" >> "$GENFILES"
 fi
 
 # Get rid of duplicate lines and compile the cleaned markdown with lowdown into the proper output format
-uniq "copy-$file" | lowdown -s -T"$lowdownfmt" --parse-math -o "$file.$ext"
+uniq "copy-$file" | lowdown -s -T"$lowdownfmt" --parse-math -o "$outfile"
 rm "copy-$file"
 # potential new code below
 cat <<EOF > /dev/null
 cmd=""
 case $OUTFMT in
-	latex) cmd="lowdown -s -T\"$lowdownfmt\" --parse-math -o \"$file.$ext\"";;
+	latex) cmd="lowdown -s -T\"$lowdownfmt\" --parse-math -o \"$outfile\"";;
 	groff)
 		if [ -x $(command -v lowdown) ] ; then
-			cmd="lowdown -s -T\"$lowdownfmt\" --parse-math -o \"$file.$ext\""
+			cmd="lowdown -s -T\"$lowdownfmt\" --parse-math -o \"$outfile\""
 		elif [ -x $(command -v md2roff) ] ; then
-			cmd="md2roff > \"$file.$ext\""
+			cmd="md2roff > \"$outfile\""
 		fi
 	;;
 esac
@@ -192,19 +196,19 @@ uniq "copy-$file" | $cmd 2>/dev/null
 EOF
 
 case $OUTFMT in
-	latex) sed -i 's/age{xcolor}/age[dvipsnames]{xcolor}/;/title{Untitled article}/d' "$file.$ext";;
+	latex) sed -i 's/age{xcolor}/age[dvipsnames]{xcolor}/;/title{Untitled article}/d' "$outfile";;
 esac
 
 # Add in the preamble and the actually input the '@input' files
-if grep -q "@pre@" "$file.$ext"
+if grep -q "@pre@" "$outfile"
 then
-	preamfile="preamble-$file.$ext"
+	preamfile="preamble-$outfile"
 	case $OUTFMT in
 		latex)
-			genpream="$(sedpaste "/documentclass/=;/begin\{document\}/=" "$file.$ext")"
-			sed -n "${genpream}p" "$file.$ext" > "gen-$preamfile"
+			genpream="$(sedpaste "/documentclass/=;/begin\{document\}/=" "$outfile")"
+			sed -n "${genpream}p" "$outfile" > "gen-$preamfile"
 			echo "gen-$preamfile" >> "$GENFILES"
-			sed -i "${genpream}d" "$file.$ext"
+			sed -i "${genpream}d" "$outfile"
 			if grep -q "documentclass" "$preamfile"
 			then
 				sed -i "s/documentclass.*/$(grep "documentclass" "$preamfile")/" "gen-$preamfile"
@@ -213,31 +217,31 @@ then
 			tac "$preamfile" > "$t" ; mv "$t" "$preamfile"
 			tac "gen-$preamfile" | sed "/begin{document}/r $preamfile" | tac > "final-$preamfile"
 			echo "final-$preamfile" >> "$GENFILES"
-			cat "final-$preamfile" "$file.$ext" > "$t" ; mv "$t" "$file.$ext"
+			cat "final-$preamfile" "$outfile" > "$t" ; mv "$t" "$outfile"
 		;;
 		groff)
-			cat "$preamfile" "$file.$ext" > "$t" ; mv "$t" "$file.$ext"
+			cat "$preamfile" "$outfile" > "$t" ; mv "$t" "$outfile"
 		;;
 	esac
-	sed -i -E "/^@pre@.*$/d" "$file.$ext"
+	sed -i -E "/^@pre@.*$/d" "$outfile"
 fi
 
-grep -E "@input@" "$file.$ext" | cut -d"@" -f3 | xargs -I{} sed -i -e "/@input@{}@/r {}" -e "/@input@{}@/d"  "$file.$ext"
+grep -E "@input@" "$outfile" | cut -d"@" -f3 | xargs -I{} sed -i -e "/@input@{}@/r {}" -e "/@input@{}@/d"  "$outfile"
 
 [ -z $NO_PDF ] && {
 # Compile with the right compiler
 case $OUTFMT in
-	latex) ${TEXCC} "$file.$ext"
+	latex) ${TEXCC} "$outfile"
 		[ -n "$HAS_CITATIONS" ] && {
-			if grep -q biber "$file.$ext" ; then
+			if grep -q biber "$outfile" ; then
 				biber "$file"
 			else
 				bibtex "$file"
 			fi
-			${TEXCC} "$file.$ext"
+			${TEXCC} "$outfile"
 		}
-		latexmk -c -f "$file.$ext";;
-	groff) gc="tee"; which grap && gc="grap"; refer < "$file.$ext" | preconv | eqn -Tpdf | tbl | $gc | pic | groff -mspdf -Tpdf > "$file.pdf";;
+		latexmk -c -f "$outfile";;
+	groff) gc="tee"; which grap && gc="grap"; refer < "$outfile" | preconv | eqn -Tpdf | tbl | $gc | pic | groff -mspdf -Tpdf > "$file.pdf";;
 	html) ;;
 esac
 }
