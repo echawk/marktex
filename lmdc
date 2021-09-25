@@ -112,7 +112,7 @@ sedpaste "/$RE_RAW/=" "copy-$file" | while read -r COORDS
 do
 	# Here we are moving the freshly generated file to copy-$file so that our changes are saved
 	# iteratively
-	mv "$(extract_text_between "copy-$file" "$i" "@r" 'raw' | cut -d',' -f1)" "copy-$file"
+	mv "$(extract_text_between "copy-$file" "$i" "$RE_RAW" 'raw' | cut -d',' -f1)" "copy-$file"
 	echo "copy-$file-raw-$i.$ext" >> "$GENFILES"
 	i=$((i + 1))
 done
