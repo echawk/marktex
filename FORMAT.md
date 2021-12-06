@@ -80,3 +80,15 @@ format instead:
 
 	sourcefile>```>lang>optionalfile
 
+## Switch Blocks
+
+	@sw
+		\textit{Italics in {\LaTeX}}
+	@l
+		.I
+		Italics in roff
+	@g
+		<i>Italics in html</i>
+	@w
+	@sw
+
