@@ -19,24 +19,23 @@ HELP="$USAGE
     Print this message
 "
 COLOR_SOURCE="N"
-for arg in "$@"
-do
+for arg in "$@"; do
     case $arg in
-        -l|--latex)    OUTFMT="latex"; ext="tex" ; highlightfmt="latexcolor"    ; lowdownfmt="latex" ;;
-        -g|--groff)    OUTFMT="groff"; ext="ms"  ; highlightfmt="groff_mm_color"; lowdownfmt="ms"    ;;
-        -w|--html)     OUTFMT="html" ; ext="html"; highlightfmt="html"          ; lowdownfmt="html"  ;;
-        -m|--markdown) OUTFMT="md"   ; ext="md"  ; highlightfmt="latexcolor"    ; lowdownfmt="latex" ;;
-        -f|--github-flavored-markdown) OUTFMT="gfm"  ; ext="md"  ; highlightfmt=""              ; lowdownfmt="" ;;
-        -c|--color-source) COLOR_SOURCE="Y" ;;
-        -h|--help)
+        -l | --latex)  OUTFMT="latex" ext="tex"  highlightfmt="latexcolor"     lowdownfmt="latex" ;;
+        -g | --groff)  OUTFMT="groff" ext="ms"   highlightfmt="groff_mm_color" lowdownfmt="ms"    ;;
+        -w | --html)   OUTFMT="html"  ext="html" highlightfmt="html"           lowdownfmt="html"  ;;
+        -m | --markdown) OUTFMT="md"  ext="md"   highlightfmt="latexcolor"     lowdownfmt="latex" ;;
+        -f | --github-flavored-markdown) OUTFMT="gfm" ext="md"   highlightfmt=""               lowdownfmt="" ;;
+        -c | --color-source) COLOR_SOURCE="Y" ;;
+        -h | --help)
             printf "%s" "$HELP"
             exit 0
             ;;
-        -i|--input)
+        -i | --input)
             shift
             file="$1"
             ;;
-        -o|--output)
+        -o | --output)
             outfile="$1"
             ;;
         --no-pdf) NO_PDF=1 ;;
@@ -54,7 +53,10 @@ done
 
 TEXCC=${TEXCC:-pdflatex}
 GENFILES="$(mktemp)"
-t="$GENFILES-tempfile" ; echo "$t" >> "$GENFILES"
+
+t="$GENFILES-tempfile"
+echo "$t" >>"$GENFILES"
+
 RE_CODE='```>[a-z]*>?[a-z]*'
 RE_RAW="^@r$"
 RE_CITE='@c.*@c'
@@ -69,21 +71,21 @@ RE_CITE='@c.*@c'
 # $3 -> i          - the current i (in reference to each loop)
 # $4 -> re pattern - the regex pattern to remove from the extracted text
 # $5 -> identifier - 'raw', 'code', etc.
-extract_text_between(){
+extract_text_between() {
     cf="$1-$4-$2.$ext"
     re="$3"
     # extract out all of the text in between the start and end lines
-    sed -n "${COORDS}p" "$1" > "$cf"
+    sed -n "${COORDS}p" "$1" >"$cf"
     # remove the marker for the raw blocks
     sed -E -i "/${re}/d" "$cf"
     # ${cf%%.*} - ie : file.name -> file
-    sed "${COORDS}s/.*/@input@${cf}@/g" "$1" > "copy-${cf%%.*}"
+    sed "${COORDS}s/.*/@input@${cf}@/g" "$1" >"copy-${cf%%.*}"
     # return 'copy-file,file.name'
     printf "%s" "copy-${cf%%.*},${cf}"
-    echo "copy-${cf%%.*}" >> "$GENFILES"
+    echo "copy-${cf%%.*}" >>"$GENFILES"
 }
 
-sedpaste(){
+sedpaste() {
     sed -E -n "$1" "$2" | paste -d"," - -
 }
 
@@ -91,31 +93,29 @@ cp "$file" "copy-$file"
 
 # read in source files and create code blocks
 grep -qE "^[^>]+>${RE_CODE}" "$file" && {
-    grep -E "^[^>]+>${RE_CODE}" "$file" | cut -d'>' -f1 | while read -r f
-    do
-        origline="$(grep -E "$f>${RE_CODE}" "$file" | sed 1q )"
+    grep -E "^[^>]+>${RE_CODE}" "$file" | cut -d'>' -f1 | while read -r f; do
+        origline="$(grep -E "$f>${RE_CODE}" "$file" | sed 1q)"
         newline="${origline#*>}" # proper format for the code file handling below
-        echo "$newline" > "$f.md"
-        cat "$f" >> "$f.md"
-        echo "$newline" >> "$f.md"
+        echo "$newline" >"$f.md"
+        cat "$f" >>"$f.md"
+        echo "$newline" >>"$f.md"
         sed -i -E -e "/${f}>${RE_CODE}/r $f.md" -e "/${f}>${RE_CODE}/d" "copy-$file"
-        echo "$f.md" >> "$GENFILES"
+        echo "$f.md" >>"$GENFILES"
     done
 }
 
 i=0
 grep -qE "$RE_RAW" "copy-$file" && {
-# The sed call here returns the line numbers that start with the specified regex. We also know that the
-# 'blocks' are containted between every two numbers, so we combine the numbers onto the same line using
-# paste. This produces the proper input for the 'extract_text_between' procedure that is above
-sedpaste "/$RE_RAW/=" "copy-$file" | while read -r COORDS
-do
-    # Here we are moving the freshly generated file to copy-$file so that our changes are saved
-    # iteratively
-    mv "$(extract_text_between "copy-$file" "$i" "$RE_RAW" 'raw' | cut -d',' -f1)" "copy-$file"
-    echo "copy-$file-raw-$i.$ext" >> "$GENFILES"
-    i=$((i + 1))
-done
+    # The sed call here returns the line numbers that start with the specified regex. We also know that the
+    # 'blocks' are containted between every two numbers, so we combine the numbers onto the same line using
+    # paste. This produces the proper input for the 'extract_text_between' procedure that is above
+    sedpaste "/$RE_RAW/=" "copy-$file" | while read -r COORDS; do
+        # Here we are moving the freshly generated file to copy-$file so that our changes are saved
+        # iteratively
+        mv "$(extract_text_between "copy-$file" "$i" "$RE_RAW" 'raw' | cut -d',' -f1)" "copy-$file"
+        echo "copy-$file-raw-$i.$ext" >>"$GENFILES"
+        i=$((i + 1))
+    done
 }
 
 # Create the code files; both in the output document format and as an independent file (if applicable)
@@ -123,18 +123,17 @@ i=0
 grep -qE "${RE_CODE}" "copy-$file" && {
     # we remove the files that are going to be generated so we fit the spec
     grep -E "${RE_CODE}" "copy-$file" | cut -d">" -f3 | sort -u | xargs -P0 -I{} rm -vf "{}"
-    sedpaste "/^${RE_CODE}/=" "copy-$file" | while read -r COORDS
-    do
+    sedpaste "/^${RE_CODE}/=" "copy-$file" | while read -r COORDS; do
         start=${COORDS%%,*}
         lang=$(sed -n "${start}p" "copy-$file" | cut -d'>' -f2)
         langfile="$(sed -n "${start}p" "copy-$file" | cut -d'>' -f3)"
-        genfiles=$(extract_text_between "copy-$file" "$i" "$RE_CODE" 'code' )
+        genfiles=$(extract_text_between "copy-$file" "$i" "$RE_CODE" 'code')
         file_with_extracted_text="${genfiles##*,}"
-        [ -n "$langfile" ] && cat "$file_with_extracted_text" >> "$langfile"
-        if [ $COLOR_SOURCE = Y ] ; then
+        [ -n "$langfile" ] && cat "$file_with_extracted_text" >>"$langfile"
+        if [ $COLOR_SOURCE = Y ]; then
             source-highlight --src-lang "$lang" --out-format "$highlightfmt" -o "$file_with_extracted_text.$ext" -i "$file_with_extracted_text"
             sed -i "${COORDS}s/.*/@input@$file_with_extracted_text.$ext@/g" "copy-$file"
-            echo "$file_with_extracted_text.$ext" >> "$GENFILES"
+            echo "$file_with_extracted_text.$ext" >>"$GENFILES"
         else
             # if we aren't coloring code, then just transform 'RE_CODE' into '```'
             a='```'
@@ -150,29 +149,27 @@ grep -qE "${RE_CODE}" "copy-$file" && {
 i=0
 grep -qE "$RE_CITE.*" "copy-$file" && {
     HAS_CITATIONS=yes
-    sed -n "/$RE_CITE/=" "copy-$file" | while read -r COORDS
-    do
+    sed -n "/$RE_CITE/=" "copy-$file" | while read -r COORDS; do
         cf="$i-cite-$outfile"
-        sed -n "${COORDS}p" "copy-$file" > "$cf"
+        sed -n "${COORDS}p" "copy-$file" >"$cf"
         case $OUTFMT in
             latex) sed -i -E -e "s=^[^@]*@c=@c=;s/@c(.*)@c/\\\\autocite{\1}/g" "$cf" ;;
             groff) sed -i -E -e "s=^[^@]*@c=@c=;s/@c(.*)@c/\n.[\n\1\n.]\n/g" -e "s/;/\n/g" "$cf" ;;
             html) ;; #TODO: Add in HTML support
         esac
         sed -i "${COORDS}s/$RE_CITE/\n@input@${cf}@\n/" "copy-$file"
-        echo "$cf" >> "$GENFILES"
+        echo "$cf" >>"$GENFILES"
         i=$((i + 1))
     done
 }
 
 # Handle the Preamble block; this is only ran *once*
-if grep -E -q "^@p$" "copy-$file"
-then
+if grep -E -q "^@p$" "copy-$file"; then
     PREAM=$(sedpaste "/^@p$/=" "copy-$file")
-    sed -n "${PREAM}p" "copy-$file" > "preamble-$outfile"
+    sed -n "${PREAM}p" "copy-$file" >"preamble-$outfile"
     sed -i "/@p/d" "preamble-$outfile"
     sed -i "${PREAM}s/.*/@pre@preamble-$outfile@/g" "copy-$file"
-    echo "preamble-$outfile" >> "$GENFILES"
+    echo "preamble-$outfile" >>"$GENFILES"
 fi
 
 # Get rid of duplicate lines and compile the cleaned markdown with lowdown into the proper output format
@@ -180,32 +177,33 @@ uniq "copy-$file" | lowdown -s -T"$lowdownfmt" --parse-math -o "$outfile"
 rm "copy-$file"
 
 case $OUTFMT in
-    latex) sed -i 's/age{xcolor}/age[dvipsnames]{xcolor}/;/title{Untitled article}/d' "$outfile";;
+    latex) sed -i 's/age{xcolor}/age[dvipsnames]{xcolor}/;/title{Untitled article}/d' "$outfile" ;;
 esac
 
 # Add in the preamble and the actually input the '@input' files
-if grep -q "@pre@" "$outfile"
-then
+if grep -q "@pre@" "$outfile"; then
     preamfile="preamble-$outfile"
     case $OUTFMT in
         latex)
             genpream="$(sedpaste "/documentclass/=;/begin\{document\}/=" "$outfile")"
-            sed -n "${genpream}p" "$outfile" > "gen-$preamfile"
-            echo "gen-$preamfile" >> "$GENFILES"
+            sed -n "${genpream}p" "$outfile" >"gen-$preamfile"
+            echo "gen-$preamfile" >>"$GENFILES"
             sed -i "${genpream}d" "$outfile"
-            if grep -q "documentclass" "$preamfile"
-            then
+            if grep -q "documentclass" "$preamfile"; then
                 sed -i "s/documentclass.*/$(grep "documentclass" "$preamfile")/" "gen-$preamfile"
                 sed -i "/.*documentclass.*/d" "$preamfile"
             fi
-            tac "$preamfile" > "$t" ; mv "$t" "$preamfile"
-            tac "gen-$preamfile" | sed "/begin{document}/r $preamfile" | tac > "final-$preamfile"
-            echo "final-$preamfile" >> "$GENFILES"
-            cat "final-$preamfile" "$outfile" > "$t" ; mv "$t" "$outfile"
-        ;;
+            tac "$preamfile" >"$t"
+            mv "$t" "$preamfile"
+            tac "gen-$preamfile" | sed "/begin{document}/r $preamfile" | tac >"final-$preamfile"
+            echo "final-$preamfile" >>"$GENFILES"
+            cat "final-$preamfile" "$outfile" >"$t"
+            mv "$t" "$outfile"
+            ;;
         groff)
-            cat "$preamfile" "$outfile" > "$t" ; mv "$t" "$outfile"
-        ;;
+            cat "$preamfile" "$outfile" >"$t"
+            mv "$t" "$outfile"
+            ;;
     esac
     sed -i -E "/^@pre@.*$/d" "$outfile"
 fi
@@ -213,23 +211,29 @@ fi
 grep -E "@input@" "$outfile" | cut -d"@" -f3 | xargs -I{} sed -i -e "/@input@{}@/r {}" -e "/@input@{}@/d"  "$outfile"
 
 [ -z $NO_PDF ] && {
-# Compile with the right compiler
-case $OUTFMT in
-    latex) ${TEXCC} "$outfile"
-        [ -n "$HAS_CITATIONS" ] && {
-            if grep -q biber "$outfile" ; then
-                biber "$file"
-            else
-                bibtex "$file"
-            fi
+    # Compile with the right compiler
+    case $OUTFMT in
+        latex)
             ${TEXCC} "$outfile"
-        }
-        latexmk -c -f "$outfile";;
-    groff) gc="tee"; which grap && gc="grap"; refer < "$outfile" | preconv | eqn -Tpdf | tbl | $gc | pic | groff -mspdf -Tpdf > "$file.pdf";;
-    html) ;;
-esac
+            [ -n "$HAS_CITATIONS" ] && {
+                if grep -q biber "$outfile"; then
+                    biber "$file"
+                else
+                    bibtex "$file"
+                fi
+                ${TEXCC} "$outfile"
+            }
+            latexmk -c -f "$outfile"
+                                ;;
+        groff)
+            gc="tee"
+            command -v grap && gc="grap"
+            refer <"$outfile" | preconv | eqn -Tpdf | tbl | $gc | pic | groff -mspdf -Tpdf >"$file.pdf"
+                                                                                                     ;;
+        html) ;;
+    esac
 }
 
 # Remove temporary files
-sort -u < "$GENFILES" | xargs -P0 -I{} rm -vf {}
+sort -u <"$GENFILES"  | xargs -P0 -I{} rm -vf {}
 rm "$GENFILES"
