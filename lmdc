@@ -60,6 +60,7 @@ echo "$t" >>"$GENFILES"
 RE_CODE='```>[a-z]*>?[a-z]*'
 RE_RAW="^@r$"
 RE_CITE='@c.*@c'
+RE_SWITCH="^@sw$"
 
 # markdown and github-flavored-markdown are special in that they
 # require very minimal preprocessing. The only preprocessing they
@@ -90,7 +91,6 @@ sedpaste() {
 }
 
 cp "$file" "copy-$file"
-
 # read in source files and create code blocks
 grep -qE "^[^>]+>${RE_CODE}" "$file" && {
     grep -E "^[^>]+>${RE_CODE}" "$file" | cut -d'>' -f1 | while read -r f; do
@@ -101,6 +101,12 @@ grep -qE "^[^>]+>${RE_CODE}" "$file" && {
         echo "$newline" >>"$f.md"
         sed -i -E -e "/${f}>${RE_CODE}/r $f.md" -e "/${f}>${RE_CODE}/d" "copy-$file"
         echo "$f.md" >>"$GENFILES"
+    done
+}
+
+grep -qE "${RE_SWITCH}" "copy-$file" && {
+    sedpaste "/${RE_SWITCH}/=" "copy-$file" | while read -r COORDS; do
+        echo $COORDS
     done
 }
 
