@@ -106,7 +106,17 @@ grep -qE "^[^>]+>${RE_CODE}" "$file" && {
 
 grep -qE "${RE_SWITCH}" "copy-$file" && {
     sedpaste "/${RE_SWITCH}/=" "copy-$file" | while read -r COORDS; do
-        echo $COORDS
+        sed -n "${COORDS}p" "copy-$file" > "sw-${COORDS}-$file"
+        echo "sw-${COORDS}-$file" >> "$GENFILES"
+        case $OUTFMT in
+            # FIXME: doesn't actually extract the relevant part yet.
+            latex) sed -i -e "1s/${RE_SWITCH}/${RE_RAW}/" "sw-${COORDS}-$file"
+                sed -n "$(sedpaste "/$RE_RAW/=" "sw-${COORDS}-$file")p" > _
+                mv -f _ "sw-${COORDS}-$file"
+                sed -i "${COORDS#*,}r sw-${COORDS}-$file" "copy-$file"
+                sed -i "${COORDS}d" "copy-$file"
+                ;;
+        esac
     done
 }
 
